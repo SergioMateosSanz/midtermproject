@@ -1,7 +1,5 @@
 package com.ironhack.midtermproject.model;
 
-import com.ironhack.midtermproject.classes.Account;
-
 import javax.persistence.Entity;
 import java.math.BigDecimal;
 

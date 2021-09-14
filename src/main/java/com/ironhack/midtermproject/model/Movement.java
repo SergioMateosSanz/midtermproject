@@ -1,6 +1,5 @@
 package com.ironhack.midtermproject.model;
 
-import com.ironhack.midtermproject.classes.Account;
 import com.ironhack.midtermproject.enums.MovementType;
 
 import javax.persistence.*;

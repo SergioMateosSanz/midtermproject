@@ -1,5 +1,6 @@
-package com.ironhack.midtermproject.classes;
+package com.ironhack.midtermproject.model;
 
+import com.ironhack.midtermproject.classes.Money;
 import com.ironhack.midtermproject.model.Movement;
 import com.ironhack.midtermproject.model.Owner;
 
