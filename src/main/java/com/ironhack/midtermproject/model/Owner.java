@@ -12,7 +12,6 @@ public class Owner {
     private int id;
     private String name;
     private LocalDate dateOfBirth;
-    private String mailingAddress;
     private LocalDate creationDate;
     private LocalDate modificationDate;
 
@@ -45,14 +44,6 @@ public class Owner {
 
     public void setDateOfBirth(LocalDate dateOfBirth) {
         this.dateOfBirth = dateOfBirth;
-    }
-
-    public String getMailingAddress() {
-        return mailingAddress;
-    }
-
-    public void setMailingAddress(String mailingAddress) {
-        this.mailingAddress = mailingAddress;
     }
 
     public Address getAddress() {

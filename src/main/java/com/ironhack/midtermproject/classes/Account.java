@@ -1,6 +1,6 @@
 package com.ironhack.midtermproject.classes;
 
-import com.ironhack.midtermproject.enums.AccountStatus;
+import com.ironhack.midtermproject.model.Movement;
 import com.ironhack.midtermproject.model.Owner;
 
 import javax.persistence.*;
@@ -8,8 +8,9 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
-@MappedSuperclass
-public abstract class Account {
+@Entity
+@Inheritance(strategy = InheritanceType.JOINED)
+public class Account {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,6 +28,9 @@ public abstract class Account {
     private BigDecimal penaltyFee;
     private LocalDate creationDate;
     private LocalDate modificationDate;
+
+    @OneToMany(mappedBy = "account")
+    private List<Movement> movementList;
 
     public Account() {
     }
@@ -85,5 +89,13 @@ public abstract class Account {
 
     public void setModificationDate(LocalDate modificationDate) {
         this.modificationDate = modificationDate;
+    }
+
+    public List<Movement> getMovementList() {
+        return movementList;
+    }
+
+    public void setMovementList(List<Movement> movementList) {
+        this.movementList = movementList;
     }
 }

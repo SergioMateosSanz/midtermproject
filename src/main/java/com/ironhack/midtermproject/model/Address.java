@@ -16,6 +16,7 @@ public class Address {
     private String location;
     private String city;
     private String country;
+    private String mailingAddress;
     private LocalDate creationDate;
     private LocalDate modificationDate;
 
@@ -60,6 +61,14 @@ public class Address {
 
     public void setCountry(String country) {
         this.country = country;
+    }
+
+    public String getMailingAddress() {
+        return mailingAddress;
+    }
+
+    public void setMailingAddress(String mailingAddress) {
+        this.mailingAddress = mailingAddress;
     }
 
     public LocalDate getCreationDate() {

@@ -3,11 +3,9 @@ package com.ironhack.midtermproject.model;
 import com.ironhack.midtermproject.classes.Account;
 
 import javax.persistence.Entity;
-import javax.persistence.PrimaryKeyJoinColumn;
 import java.math.BigDecimal;
 
 @Entity
-@PrimaryKeyJoinColumn(name = "account_id")
 public class CreditCard extends Account {
 
     private static final BigDecimal MINIMUM_INTEREST_RATE = BigDecimal.valueOf(0.1);
@@ -15,30 +13,10 @@ public class CreditCard extends Account {
     private static final BigDecimal MAXIMUM_CREDIT_LIMIT = BigDecimal.valueOf(100000);
     private static final BigDecimal DEFAULT_CREDIT_LIMIT = BigDecimal.valueOf(100);
 
-    private int id;
-    private String secretKey;
     private BigDecimal creditLimit;
     private BigDecimal interestRate;
 
     public CreditCard() {
-    }
-
-    @Override
-    public int getId() {
-        return id;
-    }
-
-    @Override
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getSecretKey() {
-        return secretKey;
-    }
-
-    public void setSecretKey(String secretKey) {
-        this.secretKey = secretKey;
     }
 
     public BigDecimal getCreditLimit() {

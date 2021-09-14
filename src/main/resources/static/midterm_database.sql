@@ -42,6 +42,7 @@ CREATE TABLE address (
     location VARCHAR(255),
     city VARCHAR(255),
     country VARCHAR(255),
+	mailing_address VARCHAR(255),
     creation_date DATE,
     modification_date DATE
 );
@@ -53,95 +54,76 @@ CREATE TABLE person_database (
     name VARCHAR(255),
     date_of_birth DATE,
     primary_address INT,
-    mailing_address VARCHAR(255),
     creation_date DATE,
     modification_date DATE,
     FOREIGN KEY (primary_address) REFERENCES address (id)
 );
 
+DROP TABLE IF EXISTS account;
+
+CREATE TABLE account (
+	id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    amount DECIMAL DEFAULT 0,
+    currency VARCHAR(255) DEFAULT NULL,
+    owner_id INT,
+    other_owner_id INT,
+	penalty_fee DECIMAL DEFAULT 0,
+	creation_date DATE DEFAULT NULL,
+    modification_date DATE DEFAULT NULL,
+	FOREIGN KEY (owner_id) REFERENCES person_database (id),
+	FOREIGN KEY (other_owner_id) REFERENCES person_database (id)
+);
+
 DROP TABLE IF EXISTS checking;
 
 CREATE TABLE checking (
-	id INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
-    amount DECIMAL,
-    currency VARCHAR(255),
-    owner_id INT,
-    other_owner_id INT,
-    penalty_fee DECIMAL,
+	id INT UNSIGNED NOT NULL PRIMARY KEY,
     status VARCHAR(255),
     secret_key VARCHAR(255),
     minimum_balance DECIMAL,
     monthly_maintenance_fee DECIMAL,
-    creation_date DATE,
-    modification_date DATE,
-    FOREIGN KEY (owner_id) REFERENCES person_database (id),
-	FOREIGN KEY (other_owner_id) REFERENCES person_database (id)
+    foreign key (id) references account(id)
 );
 
 DROP TABLE IF EXISTS student;
 
 CREATE TABLE student (
-	id INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
-    amount DECIMAL,
-    currency VARCHAR(255),
-    owner_id INT,
-    other_owner_id INT,
-    penalty_fee DECIMAL,
+	id INT UNSIGNED NOT NULL PRIMARY KEY,
 	status VARCHAR(255),
     secret_key VARCHAR(255),
-    creation_date DATE,
-    modification_date DATE,
-    FOREIGN KEY (owner_id) REFERENCES person_database (id),
-	FOREIGN KEY (other_owner_id) REFERENCES person_database (id)
+    foreign key (id) references account(id)
 );
 
 DROP TABLE IF EXISTS saving;
 
 CREATE TABLE saving (
-	id INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
-    amount DECIMAL,
-    currency VARCHAR(255),
-    owner_id INT,
-    other_owner_id INT,
+	id INT UNSIGNED NOT NULL PRIMARY KEY,
     minimum_balance DECIMAL,
-    penalty_fee DECIMAL,
     status VARCHAR(255),
     secret_key VARCHAR(255),
     interest_rate DECIMAL,
-    creation_date DATE,
-    modification_date DATE,
-    FOREIGN KEY (owner_id) REFERENCES person_database (id),
-	FOREIGN KEY (other_owner_id) REFERENCES person_database (id)
+    foreign key (id) references account(id)
 );
 
 DROP TABLE IF EXISTS credit_card;
 
 CREATE TABLE credit_card (
-	id INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
-    amount DECIMAL,
-    currency VARCHAR(255),
-    owner_id INT,
-    other_owner_id INT,
-	penalty_fee DECIMAL,
+	id INT UNSIGNED NOT NULL PRIMARY KEY,
     credit_limit DECIMAL,
-    secret_key VARCHAR(255),
     interest_rate DECIMAL,
-    creation_date DATE,
-    modification_date DATE,
-    FOREIGN KEY (owner_id) REFERENCES person_database (id),
-	FOREIGN KEY (other_owner_id) REFERENCES person_database (id)
+foreign key (id) references account(id)
 );
 
 DROP TABLE IF EXISTS movement;
 
 CREATE TABLE movement (
-	id INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
-    account_id INT,
-    amount DECIMAL,
+	id BIGINT unsigned AUTO_INCREMENT NOT NULL PRIMARY KEY,
+    account_id INT UNSIGNED NOT NULL,
+    transfer_amount DECIMAL,
     balance_before DECIMAL,
     balance_after DECIMAL,
     movement_type VARCHAR(255),
     order_date DATE,
     modification_date DATE,
-    FOREIGN KEY (account_id) REFERENCES checking(id)
+    FOREIGN KEY (account_id) REFERENCES account(id)
 );

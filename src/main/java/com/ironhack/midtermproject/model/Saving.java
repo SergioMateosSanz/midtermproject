@@ -6,11 +6,9 @@ import com.ironhack.midtermproject.enums.AccountStatus;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
-import javax.persistence.PrimaryKeyJoinColumn;
 import java.math.BigDecimal;
 
 @Entity
-@PrimaryKeyJoinColumn(name = "account_id")
 public class Saving extends Account {
 
     private static final BigDecimal MINIMUM_INTEREST_RATE = BigDecimal.valueOf(0.0025);
@@ -18,7 +16,6 @@ public class Saving extends Account {
     private static final BigDecimal MINIMUM_BALANCE = BigDecimal.valueOf(100);
     private static final BigDecimal DEFAULT_MINIMUM_BALANCE = BigDecimal.valueOf(1000);
 
-    private int id;
     private String secretKey;
     private BigDecimal minimumBalance;
     private BigDecimal interestRate;
@@ -26,16 +23,6 @@ public class Saving extends Account {
     private AccountStatus status;
 
     public Saving() {
-    }
-
-    @Override
-    public int getId() {
-        return id;
-    }
-
-    @Override
-    public void setId(int id) {
-        this.id = id;
     }
 
     public String getSecretKey() {
