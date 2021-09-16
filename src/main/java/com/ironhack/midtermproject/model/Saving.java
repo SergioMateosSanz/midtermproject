@@ -5,10 +5,11 @@ import com.ironhack.midtermproject.enums.AccountStatus;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import java.io.Serializable;
 import java.math.BigDecimal;
 
 @Entity
-public class Saving extends Account {
+public class Saving extends Account implements Serializable {
 
     private static final BigDecimal MINIMUM_INTEREST_RATE = BigDecimal.valueOf(0.0025);
     private static final BigDecimal MAXIMUM_INTEREST_RATE = BigDecimal.valueOf(0.5);
