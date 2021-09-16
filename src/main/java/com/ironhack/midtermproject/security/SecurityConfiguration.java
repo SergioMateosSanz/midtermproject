@@ -32,10 +32,6 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
             .userDetailsService(userDetailsService)
             .passwordEncoder(passwordEncoder);
 
-//        auth.inMemoryAuthentication()
-//                .withUser("admin").password(passwordEncoder.encode("123456")).roles("ADMIN", "USER")
-//                .and()
-//                .withUser("user").password(passwordEncoder.encode("123456")).roles("USER");
     }
 
     @Override
@@ -46,6 +42,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .mvcMatchers(HttpMethod.POST, "/users").hasRole("ADMIN")
                 .mvcMatchers(HttpMethod.DELETE,"/users/**").hasRole("ADMIN")
                 .mvcMatchers(HttpMethod.PATCH,"/addresses/**").hasRole("ADMIN")
+                .mvcMatchers(HttpMethod.GET,"/accounts").hasAnyRole("ADMIN", "HOLDER")
                 .anyRequest().permitAll();
 
     }

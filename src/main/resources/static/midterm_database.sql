@@ -29,10 +29,12 @@ CREATE TABLE role (
 );
 
 INSERT INTO user (username, password) VALUES
-("admin","$2a$10$MSzkrmfd5ZTipY0XkuCbAejBC9g74MAg2wrkeu8/m1wQGXDihaX3e");
+("admin","$2a$10$MSzkrmfd5ZTipY0XkuCbAejBC9g74MAg2wrkeu8/m1wQGXDihaX3e"),
+("holder","$2a$10$MSzkrmfd5ZTipY0XkuCbAejBC9g74MAg2wrkeu8/m1wQGXDihaX3e");
 
 INSERT INTO role (name, user_id) VALUES
-("ADMIN", 1);
+("ADMIN", 1),
+("HOLDER", 2);
 
 DROP TABLE IF EXISTS address;
 
@@ -64,7 +66,7 @@ DROP TABLE IF EXISTS account;
 CREATE TABLE account (
 	id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     amount DECIMAL DEFAULT 0,
-    currency VARCHAR(255) DEFAULT NULL,
+    currency VARCHAR(3) DEFAULT 'USD',
     owner_id INT,
     other_owner_id INT,
 	penalty_fee DECIMAL DEFAULT 0,
