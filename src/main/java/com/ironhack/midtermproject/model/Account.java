@@ -1,18 +1,15 @@
 package com.ironhack.midtermproject.model;
 
 import com.ironhack.midtermproject.classes.Money;
-import com.ironhack.midtermproject.model.Movement;
-import com.ironhack.midtermproject.model.Owner;
 
 import javax.persistence.*;
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
-public class Account implements Serializable {
+public class Account {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
