@@ -65,11 +65,11 @@ DROP TABLE IF EXISTS account;
 
 CREATE TABLE account (
 	id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    amount DECIMAL DEFAULT 0,
+    amount DECIMAL (19,4),
     currency VARCHAR(3) DEFAULT 'USD',
     owner_id INT,
     other_owner_id INT,
-	penalty_fee DECIMAL DEFAULT 0,
+	penalty_fee DECIMAL (10,4),
 	creation_date DATE DEFAULT NULL,
     modification_date DATE DEFAULT NULL,
 	FOREIGN KEY (owner_id) REFERENCES person_database (id),
@@ -82,8 +82,8 @@ CREATE TABLE checking (
 	id INT UNSIGNED NOT NULL PRIMARY KEY,
     status VARCHAR(255),
     secret_key VARCHAR(255),
-    minimum_balance DECIMAL,
-    monthly_maintenance_fee DECIMAL,
+    minimum_balance DECIMAL (19,4),
+    monthly_maintenance_fee DECIMAL (10,4),
     foreign key (id) references account(id)
 );
 
@@ -100,10 +100,10 @@ DROP TABLE IF EXISTS saving;
 
 CREATE TABLE saving (
 	id INT UNSIGNED NOT NULL PRIMARY KEY,
-    minimum_balance DECIMAL,
+    minimum_balance DECIMAL (19,4),
     status VARCHAR(255),
     secret_key VARCHAR(255),
-    interest_rate DECIMAL,
+    interest_rate DECIMAL (6,4),
     foreign key (id) references account(id)
 );
 
@@ -111,8 +111,8 @@ DROP TABLE IF EXISTS credit_card;
 
 CREATE TABLE credit_card (
 	id INT UNSIGNED NOT NULL PRIMARY KEY,
-    credit_limit DECIMAL,
-    interest_rate DECIMAL,
+    credit_limit DECIMAL (19,4),
+    interest_rate DECIMAL (6,4),
 foreign key (id) references account(id)
 );
 
@@ -121,9 +121,9 @@ DROP TABLE IF EXISTS movement;
 CREATE TABLE movement (
 	id BIGINT unsigned AUTO_INCREMENT NOT NULL PRIMARY KEY,
     account_id INT UNSIGNED NOT NULL,
-    transfer_amount DECIMAL,
-    balance_before DECIMAL,
-    balance_after DECIMAL,
+    transfer_amount DECIMAL (19,4),
+    balance_before DECIMAL (19,4),
+    balance_after DECIMAL (19,4),
     movement_type VARCHAR(255),
     order_date DATE,
     modification_date DATE,
