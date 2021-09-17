@@ -5,7 +5,7 @@ import com.ironhack.midtermproject.model.Saving;
 
 import java.math.BigDecimal;
 
-public class DecreasedAmount {
+public class DecreasedPenaltyFee {
 
     private static final BigDecimal PENALTY_FEE = BigDecimal.valueOf(40);
 
