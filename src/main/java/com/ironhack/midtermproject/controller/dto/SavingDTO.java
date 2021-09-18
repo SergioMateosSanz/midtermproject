@@ -17,14 +17,14 @@ public class SavingDTO {
     private String name;
     private LocalDate dateOfBirth;
 
-    private String nameTwo;
-    private LocalDate dateOfBirthTwo;
-
     private String direction;
     private String location;
     private String city;
     private String country;
     private String mailingAddress;
+
+    private String nameTwo;
+    private LocalDate dateOfBirthTwo;
 
     private String directionTwo;
     private String locationTwo;
@@ -202,4 +202,5 @@ public class SavingDTO {
     public void setMailingAddressTwo(String mailingAddressTwo) {
         this.mailingAddressTwo = mailingAddressTwo;
     }
+
 }

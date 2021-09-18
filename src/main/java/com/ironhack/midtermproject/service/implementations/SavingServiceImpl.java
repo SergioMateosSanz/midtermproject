@@ -3,14 +3,9 @@ package com.ironhack.midtermproject.service.implementations;
 import com.ironhack.midtermproject.classes.Money;
 import com.ironhack.midtermproject.controller.dto.SavingDTO;
 import com.ironhack.midtermproject.enums.AccountStatus;
-import com.ironhack.midtermproject.model.Account;
-import com.ironhack.midtermproject.model.Address;
-import com.ironhack.midtermproject.model.Owner;
-import com.ironhack.midtermproject.model.Saving;
-import com.ironhack.midtermproject.repository.AccountRepository;
-import com.ironhack.midtermproject.repository.AddressRepository;
-import com.ironhack.midtermproject.repository.OwnerRepository;
-import com.ironhack.midtermproject.repository.SavingRepository;
+import com.ironhack.midtermproject.enums.MovementType;
+import com.ironhack.midtermproject.model.*;
+import com.ironhack.midtermproject.repository.*;
 import com.ironhack.midtermproject.service.interfaces.SavingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -32,6 +27,9 @@ public class SavingServiceImpl implements SavingService {
     @Autowired
     AddressRepository addressRepository;
 
+    @Autowired
+    MovementRepository movementRepository;
+
     private final BigDecimal PENALTY_FEE = BigDecimal.valueOf(40);
 
     @Override
@@ -41,40 +39,34 @@ public class SavingServiceImpl implements SavingService {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Resource not processable");
         }
 
-        Owner primaryOwner = new Owner();
-        Owner secondaryOwner = new Owner();
+        Saving saving = new Saving();
 
-/*        if (!savingDTO.getNameTwo().equals("")) {
+        if (savingDTO.getNameTwo() != null) {
             if (savingDTO.getDateOfBirthTwo() != null){
                 if (!validOwnerTwo(savingDTO)) {
-                    throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Not processable");
+                    throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Resource not processable");
                 }
-                System.out.println("step 0");
+
                 Address address = createAddress(savingDTO.getDirectionTwo(), savingDTO.getLocationTwo(),
                         savingDTO.getCityTwo(), savingDTO.getCountryTwo(), savingDTO.getMailingAddressTwo());
                 addressRepository.save(address);
 
-                secondaryOwner.setAddress(address);
-                secondaryOwner.setName(savingDTO.getNameTwo());
-                secondaryOwner.setDateOfBirth(savingDTO.getDateOfBirthTwo());
-                secondaryOwner.setCreationDate(LocalDate.now());
+                Owner secondaryOwner = fillSecondaryOwnerData(savingDTO, address);
                 ownerRepository.save(secondaryOwner);
+
+                saving.setOtherOwner(secondaryOwner);
             } else {
-                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Not processable");
+                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Resource not processable");
             }
-        }*/
+        }
 
         Address address = createAddress(savingDTO.getDirection(), savingDTO.getLocation(),
                 savingDTO.getCity(), savingDTO.getCountry(), savingDTO.getMailingAddress());
         addressRepository.save(address);
 
-        primaryOwner.setAddress(address);
-        primaryOwner.setName(savingDTO.getName());
-        primaryOwner.setDateOfBirth(savingDTO.getDateOfBirth());
-        primaryOwner.setCreationDate(LocalDate.now());
+        Owner primaryOwner = fillOwnerData(savingDTO, address);
         ownerRepository.save(primaryOwner);
 
-        Saving saving = new Saving();
         Money money = new Money(savingDTO.getAmount());
         saving.setBalance(money);
         saving.setPenaltyFee(PENALTY_FEE);
@@ -82,12 +74,16 @@ public class SavingServiceImpl implements SavingService {
         saving.setMinimumBalance(savingDTO.getMinimumBalance());
         saving.setInterestRate(savingDTO.getInterestRate());
         saving.setStatus(AccountStatus.ACTIVE);
+        saving.setPrimaryOwner(primaryOwner);
+        saving.setCreationDate(LocalDate.now());
+        saving.setModificationDate(LocalDate.of(0001,01,01));
         savingRepository.save(saving);
 
-        SavingDTO returnDTO = new SavingDTO();
+        Movement movement = fillMovementData(savingDTO);
+        movement.setAccount(saving);
+        movementRepository.save(movement);
 
-        returnDTO.setId(saving.getId());
-        return returnDTO;
+        return fillOutputInformation(saving);
     }
 
     private boolean validInputDTO(SavingDTO savingDTO) {
@@ -119,8 +115,77 @@ public class SavingServiceImpl implements SavingService {
         address.setCountry(country);
         address.setMailingAddress(mailingAddress);
         address.setCreationDate(LocalDate.now());
+        address.setModificationDate(LocalDate.of(0001,01,01));
 
         return address;
     }
 
+    private Owner fillSecondaryOwnerData(SavingDTO savingDTO, Address address) {
+
+        Owner secondaryOwner = new Owner();
+        secondaryOwner.setAddress(address);
+        secondaryOwner.setName(savingDTO.getNameTwo());
+        secondaryOwner.setDateOfBirth(savingDTO.getDateOfBirthTwo());
+        secondaryOwner.setCreationDate(LocalDate.now());
+        secondaryOwner.setModificationDate(LocalDate.of(0001,01,01));
+
+        return secondaryOwner;
+    }
+
+    private Owner fillOwnerData(SavingDTO savingDTO, Address address) {
+
+        Owner primaryOwner = new Owner();
+        primaryOwner.setAddress(address);
+        primaryOwner.setName(savingDTO.getName());
+        primaryOwner.setDateOfBirth(savingDTO.getDateOfBirth());
+        primaryOwner.setCreationDate(LocalDate.now());
+        primaryOwner.setModificationDate(LocalDate.of(0001,01,01));
+
+        return primaryOwner;
+    }
+
+    private Movement fillMovementData(SavingDTO savingDTO) {
+
+        Movement movement = new Movement();
+        movement.setTransferAmount(savingDTO.getAmount());
+        movement.setBalanceBefore(BigDecimal.ZERO);
+        movement.setBalanceAfter(savingDTO.getAmount());
+        movement.setMovementType(MovementType.CREATED);
+        movement.setOrderDate(LocalDate.now());
+        movement.setModificationDate(LocalDate.of(0001,01,01));
+
+        return movement;
+    }
+
+    private SavingDTO fillOutputInformation(Saving saving) {
+
+        SavingDTO returnDTO = new SavingDTO();
+
+        returnDTO.setId(saving.getId());
+        returnDTO.setCurrency(saving.getBalance().getCurrency());
+        returnDTO.setAmount(saving.getBalance().getAmount());
+        returnDTO.setPenaltyFee(saving.getPenaltyFee());
+        returnDTO.setSecretKey("******");
+        returnDTO.setMinimumBalance(saving.getMinimumBalance());
+        returnDTO.setInterestRate(saving.getInterestRate());
+        returnDTO.setName(saving.getPrimaryOwner().getName());
+        returnDTO.setDateOfBirth(saving.getPrimaryOwner().getDateOfBirth());
+        returnDTO.setDirection(saving.getPrimaryOwner().getAddress().getDirection());
+        returnDTO.setLocation(saving.getPrimaryOwner().getAddress().getLocation());
+        returnDTO.setCity(saving.getPrimaryOwner().getAddress().getCity());
+        returnDTO.setCountry(saving.getPrimaryOwner().getAddress().getCountry());
+        returnDTO.setMailingAddress(saving.getPrimaryOwner().getAddress().getMailingAddress());
+
+        if (saving.getOtherOwner() != null) {
+            returnDTO.setNameTwo(saving.getOtherOwner().getName());
+            returnDTO.setDateOfBirthTwo(saving.getOtherOwner().getDateOfBirth());
+            returnDTO.setDirectionTwo(saving.getOtherOwner().getAddress().getDirection());
+            returnDTO.setLocationTwo(saving.getOtherOwner().getAddress().getLocation());
+            returnDTO.setCityTwo(saving.getOtherOwner().getAddress().getCity());
+            returnDTO.setCountryTwo(saving.getOtherOwner().getAddress().getCountry());
+            returnDTO.setMailingAddressTwo(saving.getOtherOwner().getAddress().getMailingAddress());
+        }
+
+        return returnDTO;
+    }
 }
