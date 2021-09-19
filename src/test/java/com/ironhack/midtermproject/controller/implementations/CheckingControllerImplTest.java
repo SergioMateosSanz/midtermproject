@@ -331,4 +331,22 @@ class CheckingControllerImplTest {
         assertTrue(mvcResult.getResponse().getContentAsString(StandardCharsets.UTF_8).contains(""+checking.getId()+""));
         assertTrue(mvcResult.getResponse().getContentAsString(StandardCharsets.UTF_8).contains(""+checkingTwo.getId()+""));
     }
+
+    @Test
+    @WithMockUser(roles = "HOLDER")
+    void getChecking_NoFound_AccountNotExits() throws Exception {
+
+        mockMvc.perform(get("/accounts/checkings/0"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void getChecking_ReturnChecking_AccountExits() throws Exception {
+
+        MvcResult mvcResult = mockMvc.perform(get("/accounts/checkings/"+checking.getId()).with(httpBasic("Michael Douglas", "123456")))
+                .andExpect(status().isOk())
+                .andReturn();
+        assertTrue(mvcResult.getResponse().getContentAsString(StandardCharsets.UTF_8).contains(""+checking.getId()+""));
+        assertTrue(mvcResult.getResponse().getContentAsString(StandardCharsets.UTF_8).contains("Michael Douglas"));
+    }
 }

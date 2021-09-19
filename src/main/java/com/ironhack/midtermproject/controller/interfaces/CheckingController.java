@@ -9,4 +9,5 @@ public interface CheckingController {
 
     CheckingDTO store(CheckingDTO checkingDTO);
     List<CheckingDTO> getAll(CustomUserDetails userDetails);
+    CheckingDTO getChecking(int id);
 }

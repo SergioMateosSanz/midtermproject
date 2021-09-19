@@ -32,4 +32,12 @@ public class CheckingControllerImpl implements CheckingController {
 
         return chekingService.getAllByOwner(userDetails.getUsername());
     }
+
+    @Override
+    @GetMapping("/accounts/checkings/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public CheckingDTO getChecking(@PathVariable(name = "id") int id) {
+
+        return chekingService.getChecking(id);
+    }
 }

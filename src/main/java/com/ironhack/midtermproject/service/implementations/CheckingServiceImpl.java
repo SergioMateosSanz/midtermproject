@@ -53,7 +53,7 @@ public class CheckingServiceImpl implements CheckingService {
     @Override
     public CheckingDTO store(CheckingDTO checkingDTO) {
 
-        if (checkingDTO.getDateOfBirth() == null){
+        if (checkingDTO.getDateOfBirth() == null) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Resource not processable");
         }
 
@@ -86,6 +86,18 @@ public class CheckingServiceImpl implements CheckingService {
         }
     }
 
+    @Override
+    public CheckingDTO getChecking(int id) {
+
+        Optional<Checking> optionalChecking = checkingRepository.findById(id);
+
+        if (optionalChecking.isPresent()) {
+            return fillOutputInformation(optionalChecking.get());
+        } else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Resource not found");
+        }
+    }
+
     private CheckingDTO storeChecking(CheckingDTO checkingDTO) {
 
         if (!validInputDTO(checkingDTO)) {
@@ -95,7 +107,7 @@ public class CheckingServiceImpl implements CheckingService {
         Checking checking = new Checking();
 
         if (checkingDTO.getNameTwo() != null) {
-            if (checkingDTO.getDateOfBirthTwo() != null){
+            if (checkingDTO.getDateOfBirthTwo() != null) {
                 if (!validOwnerTwo(checkingDTO)) {
                     throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Resource not processable");
                 }
@@ -153,7 +165,7 @@ public class CheckingServiceImpl implements CheckingService {
         checking.setStatus(AccountStatus.ACTIVE);
         checking.setPrimaryOwner(primaryOwner);
         checking.setCreationDate(LocalDate.now());
-        checking.setModificationDate(LocalDate.of(1,1,1));
+        checking.setModificationDate(LocalDate.of(1, 1, 1));
         checkingRepository.save(checking);
 
         Movement movement = fillMovementData(checkingDTO);
@@ -194,7 +206,7 @@ public class CheckingServiceImpl implements CheckingService {
         address.setCountry(country);
         address.setMailingAddress(mailingAddress);
         address.setCreationDate(LocalDate.now());
-        address.setModificationDate(LocalDate.of(1,1,1));
+        address.setModificationDate(LocalDate.of(1, 1, 1));
 
         return address;
     }
@@ -224,7 +236,7 @@ public class CheckingServiceImpl implements CheckingService {
         secondaryOwner.setName(checkingDTO.getNameTwo());
         secondaryOwner.setDateOfBirth(checkingDTO.getDateOfBirthTwo());
         secondaryOwner.setCreationDate(LocalDate.now());
-        secondaryOwner.setModificationDate(LocalDate.of(1,1,1));
+        secondaryOwner.setModificationDate(LocalDate.of(1, 1, 1));
 
         return secondaryOwner;
     }
@@ -236,7 +248,7 @@ public class CheckingServiceImpl implements CheckingService {
         primaryOwner.setName(checkingDTO.getName());
         primaryOwner.setDateOfBirth(checkingDTO.getDateOfBirth());
         primaryOwner.setCreationDate(LocalDate.now());
-        primaryOwner.setModificationDate(LocalDate.of(1,1,1));
+        primaryOwner.setModificationDate(LocalDate.of(1, 1, 1));
 
         return primaryOwner;
     }
@@ -250,7 +262,7 @@ public class CheckingServiceImpl implements CheckingService {
         movement.setMovementType(MovementType.CREATED);
         movement.setOrderDate(LocalDate.now());
         movement.setTimeExecution(LocalDateTime.now());
-        movement.setModificationDate(LocalDate.of(1,1,1));
+        movement.setModificationDate(LocalDate.of(1, 1, 1));
 
         return movement;
     }
