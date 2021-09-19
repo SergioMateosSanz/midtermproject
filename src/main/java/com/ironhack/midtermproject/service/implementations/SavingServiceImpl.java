@@ -16,6 +16,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -120,6 +121,25 @@ public class SavingServiceImpl implements SavingService {
         saveUserCredentials(savingDTO.getSecretKey(), savingDTO.getName());
 
         return fillOutputInformation(saving);
+    }
+
+    @Override
+    public List<SavingDTO> getAllByOwner(String name) {
+
+        List<Owner> ownerList = ownerRepository.findByName(name);
+
+        if (!ownerList.isEmpty()) {
+            List<Saving> savingList = savingRepository.getAllByOwner(ownerList.get(0));
+            List<SavingDTO> returnList = new ArrayList<>();
+
+            for (Saving saving : savingList) {
+                returnList.add(fillOutputInformation(saving));
+            }
+
+            return returnList;
+        } else {
+            return null;
+        }
     }
 
     private boolean validInputDTO(SavingDTO savingDTO) {
