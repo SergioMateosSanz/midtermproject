@@ -141,6 +141,22 @@ public class StudentServiceImpl implements StudentService {
         }
     }
 
+    @Override
+    public CheckingDTO getStudent(int id, String name) {
+
+        Optional<Student> optionalStudent = studentRepository.findById(id);
+
+        if (optionalStudent.isPresent()) {
+            if (optionalStudent.get().getPrimaryOwner().getName().equals(name)) {
+                return fillOutputInformation(optionalStudent.get());
+            } else {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access not permitted");
+            }
+        } else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Resource not found");
+        }
+    }
+
     private boolean validInputDTO(CheckingDTO checkingDTO) {
 
         if ((checkingDTO.getName().equals("")) || (checkingDTO.getDateOfBirth() == null) || (checkingDTO.getDirection().equals(""))

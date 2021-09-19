@@ -69,9 +69,9 @@ class StudentControllerImplTest {
         user.setUsername("Michael Douglas");
         user.setPassword(passwordEncoder.encode("123456"));
         userRepository.save(user);
-        Role adminRole = new Role("HOLDER");
-        adminRole.setUser(user);
-        roleRepository.save(adminRole);
+        Role holderRole = new Role("HOLDER");
+        holderRole.setUser(user);
+        roleRepository.save(holderRole);
 
         Address address = new Address();
         address.setDirection("direction");
@@ -118,6 +118,14 @@ class StudentControllerImplTest {
         movement.setMovementType(MovementType.CREATED);
         movement.setAccount(studentTwo);
         movementRepository.save(movement);
+
+        User userTwo = new User();
+        userTwo.setUsername("Andres Iniesta");
+        userTwo.setPassword(passwordEncoder.encode("123456"));
+        userRepository.save(userTwo);
+        holderRole = new Role("HOLDER");
+        holderRole.setUser(userTwo);
+        roleRepository.save(holderRole);
     }
 
     @AfterEach
@@ -151,5 +159,29 @@ class StudentControllerImplTest {
 
         assertTrue(mvcResult.getResponse().getContentAsString(StandardCharsets.UTF_8).contains(""+student.getId()+""));
         assertTrue(mvcResult.getResponse().getContentAsString(StandardCharsets.UTF_8).contains(""+studentTwo.getId()+""));
+    }
+
+    @Test
+    void getStudent_NoFound_AccountNotExits() throws Exception {
+
+        mockMvc.perform(get("/accounts/students/0").with(httpBasic("Andres Iniesta", "123456")))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void getStudent_Forbidden_AccountExits() throws Exception {
+
+        mockMvc.perform(get("/accounts/students/"+student.getId()).with(httpBasic("Andres Iniesta", "123456")))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void getStudent_ReturnChecking_AccountExits() throws Exception {
+
+        MvcResult mvcResult = mockMvc.perform(get("/accounts/students/"+student.getId()).with(httpBasic("Michael Douglas", "123456")))
+                .andExpect(status().isOk())
+                .andReturn();
+        assertTrue(mvcResult.getResponse().getContentAsString(StandardCharsets.UTF_8).contains(""+student.getId()+""));
+        assertTrue(mvcResult.getResponse().getContentAsString(StandardCharsets.UTF_8).contains("Michael Douglas"));
     }
 }

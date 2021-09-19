@@ -8,4 +8,5 @@ import java.util.List;
 public interface StudentController {
 
     List<CheckingDTO> getAll(CustomUserDetails userDetails);
+    CheckingDTO getStudent(int id, CustomUserDetails userDetails);
 }
