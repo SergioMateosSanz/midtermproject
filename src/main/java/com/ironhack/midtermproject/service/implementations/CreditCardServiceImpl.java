@@ -2,6 +2,7 @@ package com.ironhack.midtermproject.service.implementations;
 
 import com.ironhack.midtermproject.classes.Money;
 import com.ironhack.midtermproject.controller.dto.CreditCardDTO;
+import com.ironhack.midtermproject.controller.dto.SavingDTO;
 import com.ironhack.midtermproject.enums.MovementType;
 import com.ironhack.midtermproject.model.*;
 import com.ironhack.midtermproject.repository.*;
@@ -14,6 +15,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -107,6 +109,25 @@ public class CreditCardServiceImpl implements CreditCardService {
         movementRepository.save(movement);
 
         return fillOutputInformation(creditCard);
+    }
+
+    @Override
+    public List<CreditCardDTO> getAllByOwner(String name) {
+
+        List<Owner> ownerList = ownerRepository.findByName(name);
+
+        if (!ownerList.isEmpty()) {
+            List<CreditCard> creditCardList = creditCardRepository.getAllByOwner(ownerList.get(0));
+            List<CreditCardDTO> returnList = new ArrayList<>();
+
+            for (CreditCard creditCard : creditCardList) {
+                returnList.add(fillOutputInformation(creditCard));
+            }
+
+            return returnList;
+        } else {
+            return null;
+        }
     }
 
     private boolean validInputDTO(CreditCardDTO creditCardDTO) {
