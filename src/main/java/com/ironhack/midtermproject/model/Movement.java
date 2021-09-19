@@ -5,6 +5,7 @@ import com.ironhack.midtermproject.enums.MovementType;
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 public class Movement {
@@ -23,6 +24,7 @@ public class Movement {
     @Enumerated(EnumType.STRING)
     private MovementType movementType;
     private LocalDate orderDate;
+    private LocalDateTime timeExecution;
     private LocalDate modificationDate;
 
     public Movement() {
@@ -74,6 +76,14 @@ public class Movement {
 
     public void setOrderDate(LocalDate orderDate) {
         this.orderDate = orderDate;
+    }
+
+    public LocalDateTime getTimeExecution() {
+        return timeExecution;
+    }
+
+    public void setTimeExecution(LocalDateTime timeExecution) {
+        this.timeExecution = timeExecution;
     }
 
     public LocalDate getModificationDate() {

@@ -10,12 +10,12 @@ import com.ironhack.midtermproject.service.interfaces.SavingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -139,7 +139,7 @@ public class SavingServiceImpl implements SavingService {
         address.setCountry(country);
         address.setMailingAddress(mailingAddress);
         address.setCreationDate(LocalDate.now());
-        address.setModificationDate(LocalDate.of(0001,01,01));
+        address.setModificationDate(LocalDate.of(1,1,1));
 
         return address;
     }
@@ -169,7 +169,7 @@ public class SavingServiceImpl implements SavingService {
         secondaryOwner.setName(savingDTO.getNameTwo());
         secondaryOwner.setDateOfBirth(savingDTO.getDateOfBirthTwo());
         secondaryOwner.setCreationDate(LocalDate.now());
-        secondaryOwner.setModificationDate(LocalDate.of(0001,01,01));
+        secondaryOwner.setModificationDate(LocalDate.of(1,1,1));
 
         return secondaryOwner;
     }
@@ -181,7 +181,7 @@ public class SavingServiceImpl implements SavingService {
         primaryOwner.setName(savingDTO.getName());
         primaryOwner.setDateOfBirth(savingDTO.getDateOfBirth());
         primaryOwner.setCreationDate(LocalDate.now());
-        primaryOwner.setModificationDate(LocalDate.of(0001,01,01));
+        primaryOwner.setModificationDate(LocalDate.of(1,1,1));
 
         return primaryOwner;
     }
@@ -194,7 +194,8 @@ public class SavingServiceImpl implements SavingService {
         movement.setBalanceAfter(savingDTO.getAmount());
         movement.setMovementType(MovementType.CREATED);
         movement.setOrderDate(LocalDate.now());
-        movement.setModificationDate(LocalDate.of(0001,01,01));
+        movement.setTimeExecution(LocalDateTime.now());
+        movement.setModificationDate(LocalDate.of(1,1,1));
 
         return movement;
     }

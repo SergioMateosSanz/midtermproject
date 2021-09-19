@@ -124,6 +124,7 @@ CREATE TABLE movement (
     balance_after DECIMAL (19,4),
     movement_type VARCHAR(255),
     order_date DATE,
+    time_execution DATETIME,
     modification_date DATE,
     FOREIGN KEY (account_id) REFERENCES account(id)
 );
