@@ -9,11 +9,15 @@ import com.ironhack.midtermproject.repository.*;
 import com.ironhack.midtermproject.service.interfaces.SavingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 public class SavingServiceImpl implements SavingService {
@@ -29,6 +33,12 @@ public class SavingServiceImpl implements SavingService {
 
     @Autowired
     MovementRepository movementRepository;
+
+    @Autowired
+    UserRepository userRepository;
+
+    @Autowired
+    RoleRepository roleRepository;
 
     private final BigDecimal PENALTY_FEE = BigDecimal.valueOf(40);
 
@@ -51,8 +61,14 @@ public class SavingServiceImpl implements SavingService {
                         savingDTO.getCityTwo(), savingDTO.getCountryTwo(), savingDTO.getMailingAddressTwo());
                 addressRepository.save(address);
 
-                Owner secondaryOwner = fillSecondaryOwnerData(savingDTO, address);
-                ownerRepository.save(secondaryOwner);
+                Owner ownerDatabase = lookOwnerPreviouslyRegister(savingDTO.getNameTwo(), savingDTO.getDateOfBirthTwo());
+                Owner secondaryOwner;
+                if (ownerDatabase != null) {
+                    secondaryOwner = ownerDatabase;
+                } else {
+                    secondaryOwner = fillSecondaryOwnerData(savingDTO, address);
+                    ownerRepository.save(secondaryOwner);
+                }
 
                 saving.setOtherOwner(secondaryOwner);
             } else {
@@ -64,8 +80,14 @@ public class SavingServiceImpl implements SavingService {
                 savingDTO.getCity(), savingDTO.getCountry(), savingDTO.getMailingAddress());
         addressRepository.save(address);
 
-        Owner primaryOwner = fillOwnerData(savingDTO, address);
-        ownerRepository.save(primaryOwner);
+        Owner ownerDatabase = lookOwnerPreviouslyRegister(savingDTO.getName(), savingDTO.getDateOfBirth());
+        Owner primaryOwner;
+        if (ownerDatabase != null) {
+            primaryOwner = ownerDatabase;
+        } else {
+            primaryOwner = fillOwnerData(savingDTO, address);
+            ownerRepository.save(primaryOwner);
+        }
 
         Money money = new Money(savingDTO.getAmount());
         saving.setBalance(money);
@@ -76,12 +98,14 @@ public class SavingServiceImpl implements SavingService {
         saving.setStatus(AccountStatus.ACTIVE);
         saving.setPrimaryOwner(primaryOwner);
         saving.setCreationDate(LocalDate.now());
-        saving.setModificationDate(LocalDate.of(0001,01,01));
+        saving.setModificationDate(LocalDate.of(1,1,1));
         savingRepository.save(saving);
 
         Movement movement = fillMovementData(savingDTO);
         movement.setAccount(saving);
         movementRepository.save(movement);
+
+        saveUserCredentials(savingDTO.getSecretKey(), savingDTO.getName());
 
         return fillOutputInformation(saving);
     }
@@ -98,9 +122,9 @@ public class SavingServiceImpl implements SavingService {
 
     private boolean validOwnerTwo(SavingDTO savingDTO) {
 
-        if ((savingDTO.getNameTwo() == null) || (savingDTO.getDateOfBirthTwo() == null) || (savingDTO.getDirectionTwo() == null)
-                || (savingDTO.getLocationTwo() == null) || (savingDTO.getCityTwo() == null) || (savingDTO.getCountryTwo() == null)
-                || (savingDTO.getMailingAddressTwo() == null)) {
+        if ((savingDTO.getNameTwo().equals("")) || (savingDTO.getDateOfBirthTwo() == null) || (savingDTO.getDirectionTwo().equals(""))
+                || (savingDTO.getLocationTwo().equals("")) || (savingDTO.getCityTwo().equals("")) || (savingDTO.getCountryTwo().equals(""))
+                || (savingDTO.getMailingAddressTwo().equals(""))) {
             return false;
         }
         return true;
@@ -118,6 +142,24 @@ public class SavingServiceImpl implements SavingService {
         address.setModificationDate(LocalDate.of(0001,01,01));
 
         return address;
+    }
+
+    private Owner lookOwnerPreviouslyRegister(String name, LocalDate dateOfBirth) {
+
+        Owner owner = new Owner();
+        boolean found = false;
+        List<Owner> ownerList = ownerRepository.findByName(name);
+        for (Owner owner1 : ownerList) {
+            if (dateOfBirth.equals(owner1.getDateOfBirth())) {
+                owner = owner1;
+                found = true;
+            }
+        }
+        if (found) {
+            return owner;
+        } else {
+            return null;
+        }
     }
 
     private Owner fillSecondaryOwnerData(SavingDTO savingDTO, Address address) {
@@ -187,5 +229,20 @@ public class SavingServiceImpl implements SavingService {
         }
 
         return returnDTO;
+    }
+
+    private void saveUserCredentials(String secretKey, String name) {
+
+        Optional<User> optionalUser = userRepository.findByUsername(name);
+        if (!optionalUser.isPresent()) {
+            User user = new User();
+            user.setUsername(name);
+            BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+            user.setPassword(passwordEncoder.encode(secretKey));
+            userRepository.save(user);
+            Role holderRole = new Role("HOLDER");
+            holderRole.setUser(user);
+            roleRepository.save(holderRole);
+        }
     }
 }

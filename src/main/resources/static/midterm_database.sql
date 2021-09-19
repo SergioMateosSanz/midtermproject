@@ -29,12 +29,10 @@ CREATE TABLE role (
 );
 
 INSERT INTO user (username, password) VALUES
-("admin","$2a$10$MSzkrmfd5ZTipY0XkuCbAejBC9g74MAg2wrkeu8/m1wQGXDihaX3e"),
-("holder","$2a$10$MSzkrmfd5ZTipY0XkuCbAejBC9g74MAg2wrkeu8/m1wQGXDihaX3e");
+("admin","$2a$10$MSzkrmfd5ZTipY0XkuCbAejBC9g74MAg2wrkeu8/m1wQGXDihaX3e");
 
 INSERT INTO role (name, user_id) VALUES
-("ADMIN", 1),
-("HOLDER", 2);
+("ADMIN", 1);
 
 DROP TABLE IF EXISTS address;
 
