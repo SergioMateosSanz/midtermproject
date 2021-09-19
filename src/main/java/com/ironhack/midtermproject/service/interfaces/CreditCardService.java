@@ -8,4 +8,5 @@ public interface CreditCardService {
 
     CreditCardDTO store(CreditCardDTO creditCardDTO);
     List<CreditCardDTO> getAllByOwner(String name);
+    CreditCardDTO getCreditCard(int id, String name);
 }

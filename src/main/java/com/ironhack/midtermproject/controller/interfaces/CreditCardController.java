@@ -9,4 +9,5 @@ public interface CreditCardController {
 
     CreditCardDTO store(CreditCardDTO creditCardDTO);
     List<CreditCardDTO> getAll(CustomUserDetails userDetails);
+    CreditCardDTO getCreditCard(int id, CustomUserDetails userDetails);
 }

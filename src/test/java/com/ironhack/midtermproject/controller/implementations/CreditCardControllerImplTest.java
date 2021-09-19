@@ -102,9 +102,9 @@ class CreditCardControllerImplTest {
         user.setUsername("holder");
         user.setPassword(passwordEncoder.encode("123456"));
         userRepository.save(user);
-        Role adminRole = new Role("HOLDER");
-        adminRole.setUser(user);
-        roleRepository.save(adminRole);
+        Role holderRole = new Role("HOLDER");
+        holderRole.setUser(user);
+        roleRepository.save(holderRole);
 
         Address address = new Address();
         address.setDirection("direction");
@@ -151,6 +151,14 @@ class CreditCardControllerImplTest {
         movement.setMovementType(MovementType.CREATED);
         movement.setAccount(creditCardTwo);
         movementRepository.save(movement);
+
+        User userTwo = new User();
+        userTwo.setUsername("Andres Iniesta");
+        userTwo.setPassword(passwordEncoder.encode("123456"));
+        userRepository.save(userTwo);
+        holderRole = new Role("HOLDER");
+        holderRole.setUser(userTwo);
+        roleRepository.save(holderRole);
     }
 
     @AfterEach
@@ -234,21 +242,44 @@ class CreditCardControllerImplTest {
         movementRepository.deleteAll();
         creditCardRepository.deleteAll();
         ownerRepository.deleteAll();
-        MvcResult mvcResult = mockMvc.perform(get("/accounts/savings").with(httpBasic("holder", "123456")))
+        MvcResult mvcResult = mockMvc.perform(get("/accounts/credits").with(httpBasic("holder", "123456")))
                 .andExpect(status().isOk())
                 .andReturn();
     }
 
     @Test
-    @Disabled
     void getAll_ReturnCreditCardList_AccountsInDatabase() throws Exception {
 
-        MvcResult mvcResult = mockMvc.perform(get("/accounts/savings").with(httpBasic("holder", "123456")))
+        MvcResult mvcResult = mockMvc.perform(get("/accounts/credits").with(httpBasic("holder", "123456")))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn();
 
         assertTrue(mvcResult.getResponse().getContentAsString(StandardCharsets.UTF_8).contains(""+creditCard.getId()+""));
         assertTrue(mvcResult.getResponse().getContentAsString(StandardCharsets.UTF_8).contains(""+creditCardTwo.getId()+""));
+    }
+
+    @Test
+    void getCreditCard_NoFound_AccountNotExits() throws Exception {
+
+        mockMvc.perform(get("/accounts/credits/0").with(httpBasic("Andres Iniesta", "123456")))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void getCreditCard_Forbidden_AccountExits() throws Exception {
+
+        mockMvc.perform(get("/accounts/credits/"+creditCard.getId()).with(httpBasic("Andres Iniesta", "123456")))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void getCreditCard_ReturnChecking_AccountExits() throws Exception {
+
+        MvcResult mvcResult = mockMvc.perform(get("/accounts/credits/"+creditCard.getId()).with(httpBasic("holder", "123456")))
+                .andExpect(status().isOk())
+                .andReturn();
+        assertTrue(mvcResult.getResponse().getContentAsString(StandardCharsets.UTF_8).contains(""+creditCard.getId()+""));
+        assertTrue(mvcResult.getResponse().getContentAsString(StandardCharsets.UTF_8).contains("holder"));
     }
 }

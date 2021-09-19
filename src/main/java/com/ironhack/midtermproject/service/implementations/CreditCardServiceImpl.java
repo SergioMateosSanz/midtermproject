@@ -17,6 +17,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class CreditCardServiceImpl implements CreditCardService {
@@ -127,6 +128,22 @@ public class CreditCardServiceImpl implements CreditCardService {
             return returnList;
         } else {
             return null;
+        }
+    }
+
+    @Override
+    public CreditCardDTO getCreditCard(int id, String name) {
+
+        Optional<CreditCard> optionalCreditCard = creditCardRepository.findById(id);
+
+        if (optionalCreditCard.isPresent()) {
+            if (optionalCreditCard.get().getPrimaryOwner().getName().equals(name)) {
+                return fillOutputInformation(optionalCreditCard.get());
+            } else {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access not permitted");
+            }
+        } else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Resource not found");
         }
     }
 

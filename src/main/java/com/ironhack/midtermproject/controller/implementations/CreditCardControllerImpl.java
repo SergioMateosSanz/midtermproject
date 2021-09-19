@@ -32,4 +32,12 @@ public class CreditCardControllerImpl implements CreditCardController {
 
         return creditCardService.getAllByOwner(userDetails.getUsername());
     }
+
+    @Override
+    @GetMapping("/accounts/credits/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public CreditCardDTO getCreditCard(@PathVariable(name = "id") int id, @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        return creditCardService.getCreditCard(id, userDetails.getUsername());
+    }
 }
