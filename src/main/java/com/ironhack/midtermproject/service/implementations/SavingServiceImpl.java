@@ -57,9 +57,15 @@ public class SavingServiceImpl implements SavingService {
                     throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Resource not processable");
                 }
 
-                Address address = createAddress(savingDTO.getDirectionTwo(), savingDTO.getLocationTwo(),
-                        savingDTO.getCityTwo(), savingDTO.getCountryTwo(), savingDTO.getMailingAddressTwo());
-                addressRepository.save(address);
+                Address address;
+                List<Address> addressList = addressRepository.findByMailingAddress(savingDTO.getMailingAddressTwo());
+                if (!addressList.isEmpty()) {
+                    address = addressList.get(0);
+                } else {
+                    address = createAddress(savingDTO.getDirectionTwo(), savingDTO.getLocationTwo(),
+                            savingDTO.getCityTwo(), savingDTO.getCountryTwo(), savingDTO.getMailingAddressTwo());
+                    addressRepository.save(address);
+                }
 
                 Owner ownerDatabase = lookOwnerPreviouslyRegister(savingDTO.getNameTwo(), savingDTO.getDateOfBirthTwo());
                 Owner secondaryOwner;
@@ -76,9 +82,15 @@ public class SavingServiceImpl implements SavingService {
             }
         }
 
-        Address address = createAddress(savingDTO.getDirection(), savingDTO.getLocation(),
-                savingDTO.getCity(), savingDTO.getCountry(), savingDTO.getMailingAddress());
-        addressRepository.save(address);
+        Address address;
+        List<Address> addressList = addressRepository.findByMailingAddress(savingDTO.getMailingAddress());
+        if (!addressList.isEmpty()) {
+            address = addressList.get(0);
+        } else {
+            address = createAddress(savingDTO.getDirection(), savingDTO.getLocation(),
+                    savingDTO.getCity(), savingDTO.getCountry(), savingDTO.getMailingAddress());
+            addressRepository.save(address);
+        }
 
         Owner ownerDatabase = lookOwnerPreviouslyRegister(savingDTO.getName(), savingDTO.getDateOfBirth());
         Owner primaryOwner;

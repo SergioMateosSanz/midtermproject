@@ -48,9 +48,15 @@ public class CreditCardServiceImpl implements CreditCardService {
                     throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Resource not processable");
                 }
 
-                Address address = createAddress(creditCardDTO.getDirectionTwo(), creditCardDTO.getLocationTwo(),
-                        creditCardDTO.getCityTwo(), creditCardDTO.getCountryTwo(), creditCardDTO.getMailingAddressTwo());
-                addressRepository.save(address);
+                Address address;
+                List<Address> addressList = addressRepository.findByMailingAddress(creditCardDTO.getMailingAddressTwo());
+                if (!addressList.isEmpty()) {
+                    address = addressList.get(0);
+                } else {
+                    address = createAddress(creditCardDTO.getDirectionTwo(), creditCardDTO.getLocationTwo(),
+                            creditCardDTO.getCityTwo(), creditCardDTO.getCountryTwo(), creditCardDTO.getMailingAddressTwo());
+                    addressRepository.save(address);
+                }
 
                 Owner ownerDatabase = lookOwnerPreviouslyRegister(creditCardDTO.getNameTwo(), creditCardDTO.getDateOfBirthTwo());
                 Owner secondaryOwner;
@@ -67,9 +73,15 @@ public class CreditCardServiceImpl implements CreditCardService {
             }
         }
 
-        Address address = createAddress(creditCardDTO.getDirection(), creditCardDTO.getLocation(),
-                creditCardDTO.getCity(), creditCardDTO.getCountry(), creditCardDTO.getMailingAddress());
-        addressRepository.save(address);
+        Address address;
+        List<Address> addressList = addressRepository.findByMailingAddress(creditCardDTO.getMailingAddress());
+        if (!addressList.isEmpty()) {
+            address = addressList.get(0);
+        } else {
+            address = createAddress(creditCardDTO.getDirection(), creditCardDTO.getLocation(),
+                    creditCardDTO.getCity(), creditCardDTO.getCountry(), creditCardDTO.getMailingAddress());
+            addressRepository.save(address);
+        }
 
         Owner ownerDatabase = lookOwnerPreviouslyRegister(creditCardDTO.getName(), creditCardDTO.getDateOfBirth());
         Owner primaryOwner;
