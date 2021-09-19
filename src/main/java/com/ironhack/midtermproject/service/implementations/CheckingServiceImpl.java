@@ -2,6 +2,7 @@ package com.ironhack.midtermproject.service.implementations;
 
 import com.ironhack.midtermproject.classes.Money;
 import com.ironhack.midtermproject.controller.dto.CheckingDTO;
+import com.ironhack.midtermproject.controller.dto.SavingDTO;
 import com.ironhack.midtermproject.enums.AccountStatus;
 import com.ironhack.midtermproject.enums.MovementType;
 import com.ironhack.midtermproject.model.*;
@@ -18,6 +19,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -63,6 +65,25 @@ public class CheckingServiceImpl implements CheckingService {
             returnDTO = storeChecking(checkingDTO);
         }
         return returnDTO;
+    }
+
+    @Override
+    public List<CheckingDTO> getAllByOwner(String name) {
+
+        List<Owner> ownerList = ownerRepository.findByName(name);
+
+        if (!ownerList.isEmpty()) {
+            List<Checking> checkingList = checkingRepository.getAllByOwner(ownerList.get(0));
+            List<CheckingDTO> returnList = new ArrayList<>();
+
+            for (Checking checking : checkingList) {
+                returnList.add(fillOutputInformation(checking));
+            }
+
+            return returnList;
+        } else {
+            return null;
+        }
     }
 
     private CheckingDTO storeChecking(CheckingDTO checkingDTO) {
