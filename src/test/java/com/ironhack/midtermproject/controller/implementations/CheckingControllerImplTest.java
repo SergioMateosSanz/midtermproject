@@ -105,9 +105,9 @@ class CheckingControllerImplTest {
         user.setUsername("Michael Douglas");
         user.setPassword(passwordEncoder.encode("123456"));
         userRepository.save(user);
-        Role adminRole = new Role("HOLDER");
-        adminRole.setUser(user);
-        roleRepository.save(adminRole);
+        Role holderRole = new Role("HOLDER");
+        holderRole.setUser(user);
+        roleRepository.save(holderRole);
 
         Address address = new Address();
         address.setDirection("direction");
@@ -154,6 +154,14 @@ class CheckingControllerImplTest {
         movement.setMovementType(MovementType.CREATED);
         movement.setAccount(checkingTwo);
         movementRepository.save(movement);
+
+        User userTwo = new User();
+        userTwo.setUsername("Andres Iniesta");
+        userTwo.setPassword(passwordEncoder.encode("123456"));
+        userRepository.save(userTwo);
+        holderRole = new Role("HOLDER");
+        holderRole.setUser(userTwo);
+        roleRepository.save(holderRole);
     }
 
     @AfterEach
@@ -333,11 +341,17 @@ class CheckingControllerImplTest {
     }
 
     @Test
-    @WithMockUser(roles = "HOLDER")
     void getChecking_NoFound_AccountNotExits() throws Exception {
 
-        mockMvc.perform(get("/accounts/checkings/0"))
+        mockMvc.perform(get("/accounts/checkings/0").with(httpBasic("Andres Iniesta", "123456")))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void getChecking_Forbidden_AccountExits() throws Exception {
+
+        mockMvc.perform(get("/accounts/checkings/"+checking.getId()).with(httpBasic("Andres Iniesta", "123456")))
+                .andExpect(status().isForbidden());
     }
 
     @Test

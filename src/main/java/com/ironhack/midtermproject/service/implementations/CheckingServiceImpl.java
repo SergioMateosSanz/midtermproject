@@ -87,12 +87,16 @@ public class CheckingServiceImpl implements CheckingService {
     }
 
     @Override
-    public CheckingDTO getChecking(int id) {
+    public CheckingDTO getChecking(int id, String name) {
 
         Optional<Checking> optionalChecking = checkingRepository.findById(id);
 
         if (optionalChecking.isPresent()) {
-            return fillOutputInformation(optionalChecking.get());
+            if (optionalChecking.get().getPrimaryOwner().getName().equals(name)) {
+                return fillOutputInformation(optionalChecking.get());
+            } else {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access not permitted");
+            }
         } else {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Resource not found");
         }

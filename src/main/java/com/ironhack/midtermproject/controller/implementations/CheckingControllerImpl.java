@@ -36,8 +36,8 @@ public class CheckingControllerImpl implements CheckingController {
     @Override
     @GetMapping("/accounts/checkings/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public CheckingDTO getChecking(@PathVariable(name = "id") int id) {
+    public CheckingDTO getChecking(@PathVariable(name = "id") int id, @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        return chekingService.getChecking(id);
+        return chekingService.getChecking(id, userDetails.getUsername());
     }
 }

@@ -101,9 +101,9 @@ class SavingControllerImplTest {
         user.setUsername("Michael Douglas");
         user.setPassword(passwordEncoder.encode("123456"));
         userRepository.save(user);
-        Role adminRole = new Role("HOLDER");
-        adminRole.setUser(user);
-        roleRepository.save(adminRole);
+        Role holderRole = new Role("HOLDER");
+        holderRole.setUser(user);
+        roleRepository.save(holderRole);
 
         Address address = new Address();
         address.setDirection("direction");
@@ -150,6 +150,14 @@ class SavingControllerImplTest {
         movement.setMovementType(MovementType.CREATED);
         movement.setAccount(savingTwo);
         movementRepository.save(movement);
+
+        User userTwo = new User();
+        userTwo.setUsername("Andres Iniesta");
+        userTwo.setPassword(passwordEncoder.encode("123456"));
+        userRepository.save(userTwo);
+        holderRole = new Role("HOLDER");
+        holderRole.setUser(userTwo);
+        roleRepository.save(holderRole);
     }
 
     @AfterEach
@@ -251,5 +259,29 @@ class SavingControllerImplTest {
 
         assertTrue(mvcResult.getResponse().getContentAsString(StandardCharsets.UTF_8).contains(""+saving.getId()+""));
         assertTrue(mvcResult.getResponse().getContentAsString(StandardCharsets.UTF_8).contains(""+savingTwo.getId()+""));
+    }
+
+    @Test
+    void getSaving_NoFound_AccountNotExits() throws Exception {
+
+        mockMvc.perform(get("/accounts/savings/0").with(httpBasic("Andres Iniesta", "123456")))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void getSaving_Forbidden_AccountExits() throws Exception {
+
+        mockMvc.perform(get("/accounts/savings/"+saving.getId()).with(httpBasic("Andres Iniesta", "123456")))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void getSaving_ReturnSaving_AccountExits() throws Exception {
+
+        MvcResult mvcResult = mockMvc.perform(get("/accounts/savings/"+saving.getId()).with(httpBasic("Michael Douglas", "123456")))
+                .andExpect(status().isOk())
+                .andReturn();
+        assertTrue(mvcResult.getResponse().getContentAsString(StandardCharsets.UTF_8).contains(""+saving.getId()+""));
+        assertTrue(mvcResult.getResponse().getContentAsString(StandardCharsets.UTF_8).contains("Michael Douglas"));
     }
 }

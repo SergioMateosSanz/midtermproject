@@ -8,5 +8,5 @@ public interface CheckingService {
 
     CheckingDTO store(CheckingDTO checkingDTO);
     List<CheckingDTO> getAllByOwner(String name);
-    CheckingDTO getChecking(int id);
+    CheckingDTO getChecking(int id, String name);
 }

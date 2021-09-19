@@ -142,6 +142,22 @@ public class SavingServiceImpl implements SavingService {
         }
     }
 
+    @Override
+    public SavingDTO getSaving(int id, String name) {
+
+        Optional<Saving> optionalSaving = savingRepository.findById(id);
+
+        if (optionalSaving.isPresent()) {
+            if (optionalSaving.get().getPrimaryOwner().getName().equals(name)) {
+                return fillOutputInformation(optionalSaving.get());
+            } else {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access not permitted");
+            }
+        } else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Resource not found");
+        }
+    }
+
     private boolean validInputDTO(SavingDTO savingDTO) {
 
         if ((savingDTO.getName().equals("")) || (savingDTO.getDateOfBirth() == null) || (savingDTO.getDirection().equals(""))

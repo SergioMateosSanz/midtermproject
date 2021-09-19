@@ -32,4 +32,12 @@ public class SavingControllerImpl implements SavingController {
 
         return savingService.getAllByOwner(userDetails.getUsername());
     }
+
+    @Override
+    @GetMapping("accounts/savings/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public SavingDTO getSaving(@PathVariable(name = "id") int id, @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        return savingService.getSaving(id, userDetails.getUsername());
+    }
 }

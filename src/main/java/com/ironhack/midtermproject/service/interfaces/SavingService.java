@@ -8,4 +8,5 @@ public interface SavingService {
 
     SavingDTO store(SavingDTO savingDTO);
     List<SavingDTO> getAllByOwner(String name);
+    SavingDTO getSaving(int id, String name);
 }

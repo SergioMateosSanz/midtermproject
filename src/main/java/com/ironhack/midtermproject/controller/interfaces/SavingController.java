@@ -9,4 +9,5 @@ public interface SavingController {
 
     SavingDTO store(SavingDTO savingDTO);
     List<SavingDTO> getAll(CustomUserDetails userDetails);
+    SavingDTO getSaving(int id, CustomUserDetails userDetails);
 }
