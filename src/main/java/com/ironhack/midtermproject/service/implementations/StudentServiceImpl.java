@@ -2,6 +2,7 @@ package com.ironhack.midtermproject.service.implementations;
 
 import com.ironhack.midtermproject.classes.Money;
 import com.ironhack.midtermproject.controller.dto.CheckingDTO;
+import com.ironhack.midtermproject.controller.dto.SavingDTO;
 import com.ironhack.midtermproject.enums.AccountStatus;
 import com.ironhack.midtermproject.enums.MovementType;
 import com.ironhack.midtermproject.model.*;
@@ -16,6 +17,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -118,6 +120,25 @@ public class StudentServiceImpl implements StudentService {
         saveUserCredentials(checkingDTO.getSecretKey(), checkingDTO.getName());
 
         return fillOutputInformation(student);
+    }
+
+    @Override
+    public List<CheckingDTO> getAllByOwner(String name) {
+
+        List<Owner> ownerList = ownerRepository.findByName(name);
+
+        if (!ownerList.isEmpty()) {
+            List<Student> studentList = studentRepository.getAllByOwner(ownerList.get(0));
+            List<CheckingDTO> returnList = new ArrayList<>();
+
+            for (Student student : studentList) {
+                returnList.add(fillOutputInformation(student));
+            }
+
+            return returnList;
+        } else {
+            return null;
+        }
     }
 
     private boolean validInputDTO(CheckingDTO checkingDTO) {

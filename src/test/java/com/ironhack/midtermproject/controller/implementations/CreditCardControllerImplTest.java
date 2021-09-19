@@ -45,6 +45,12 @@ class CreditCardControllerImplTest {
     @Autowired
     MovementRepository movementRepository;
 
+    @Autowired
+    UserRepository userRepository;
+
+    @Autowired
+    RoleRepository roleRepository;
+
     CreditCardDTO creditCardDTO;
 
     private MockMvc mockMvc;
@@ -86,6 +92,8 @@ class CreditCardControllerImplTest {
         creditCardRepository.deleteAll();
         ownerRepository.deleteAll();
         addressRepository.deleteAll();
+        userRepository.deleteAll();
+        roleRepository.deleteAll();
     }
 
     @Test
