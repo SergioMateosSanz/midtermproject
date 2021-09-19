@@ -1,5 +1,7 @@
 package com.ironhack.midtermproject.model;
 
+import org.hibernate.annotations.DynamicUpdate;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -8,6 +10,7 @@ import java.io.Serializable;
 import java.time.LocalDate;
 
 @Entity
+@DynamicUpdate
 public class Address implements Serializable {
 
     @Id

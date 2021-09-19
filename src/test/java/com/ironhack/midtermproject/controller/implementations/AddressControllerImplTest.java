@@ -32,9 +32,6 @@ class AddressControllerImplTest {
     @Autowired
     AddressRepository addressRepository;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
     AddressDTO addressDTO;
     Address address;
 
@@ -56,6 +53,7 @@ class AddressControllerImplTest {
         address.setCountry("country");
         address.setMailingAddress("email");
         address.setCreationDate(LocalDate.now());
+        address.setModificationDate(LocalDate.of(1,1,1));
         addressRepository.save(address);
     }
 
@@ -78,9 +76,13 @@ class AddressControllerImplTest {
 
     @Test
     @WithMockUser(roles = "ADMIN")
-    void update_NoContent_AddressNotExits() throws Exception {
+    void update_NoContent_NewAddress() throws Exception {
 
+        addressDTO.setDirection("new direction");
+        addressDTO.setLocation("new location");
+        addressDTO.setCity("new city");
         addressDTO.setCountry("Spain");
+        addressDTO.setMailingAddress("email");
         String body = objectMapper.writeValueAsString(addressDTO);
         mockMvc.perform(patch("/addresses/" + address.getId())
                         .content(body)
@@ -89,5 +91,7 @@ class AddressControllerImplTest {
                 .andExpect(status().isNoContent());
 
         assertEquals("Spain", addressRepository.findById(address.getId()).get().getCountry());
+        assertEquals(LocalDate.now(), addressRepository.findById(address.getId()).get().getModificationDate());
     }
+
 }
