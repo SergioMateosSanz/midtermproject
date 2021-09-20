@@ -53,8 +53,8 @@ class AccountControllerImplTest {
 
     private MockMvc mockMvc;
 
-    Owner holder;
-    Owner owner;
+    Account account;
+    Account accountTwo;
 
     @BeforeEach
     void setUp() {
@@ -78,14 +78,14 @@ class AccountControllerImplTest {
         contributorRole.setUser(user2);
         roleRepository.save(contributorRole);
 
-        holder = new Owner();
+        Owner holder = new Owner();
         holder.setName("holder");
         holder.setDateOfBirth(LocalDate.of(2010, 10, 3));
         holder.setCreationDate(LocalDate.now());
         holder.setAddress(null);
         ownerRepository.save(holder);
 
-        Account account = new Account();
+        account = new Account();
         account.setBalance(new Money(BigDecimal.TEN));
         account.setPenaltyFee(BigDecimal.ONE);
         account.setCreationDate(LocalDate.now());
@@ -93,20 +93,20 @@ class AccountControllerImplTest {
         account.setPrimaryOwner(holder);
         accountRepository.save(account);
 
-        owner = new Owner();
+        Owner owner = new Owner();
         owner.setName("Owner");
         owner.setDateOfBirth(LocalDate.of(2010, 10, 3));
         owner.setCreationDate(LocalDate.now());
         owner.setAddress(null);
         ownerRepository.save(owner);
 
-        account = new Account();
-        account.setBalance(new Money(BigDecimal.TEN));
-        account.setPenaltyFee(BigDecimal.ONE);
-        account.setCreationDate(LocalDate.now());
-        account.setModificationDate(LocalDate.of(1, 1, 1));
-        account.setPrimaryOwner(owner);
-        accountRepository.save(account);
+        accountTwo = new Account();
+        accountTwo.setBalance(new Money(BigDecimal.TEN));
+        accountTwo.setPenaltyFee(BigDecimal.ONE);
+        accountTwo.setCreationDate(LocalDate.now());
+        accountTwo.setModificationDate(LocalDate.of(1, 1, 1));
+        accountTwo.setPrimaryOwner(owner);
+        accountRepository.save(accountTwo);
 
     }
 
@@ -143,7 +143,6 @@ class AccountControllerImplTest {
     }
 
     @Test
-    @Disabled
     void getAllAccounts_ReturnAccountsList_AdminLogged() throws Exception {
 
         MvcResult mvcResult = mockMvc.perform(get("/accounts").with(httpBasic("admin", "123456")))
@@ -151,12 +150,11 @@ class AccountControllerImplTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn();
 
-        assertTrue(mvcResult.getResponse().getContentAsString().contains(""+owner.getId()+","));
-        assertTrue(mvcResult.getResponse().getContentAsString().contains(""+holder.getId()+","));
+        assertTrue(mvcResult.getResponse().getContentAsString().contains(""+account.getId()+","));
+        assertTrue(mvcResult.getResponse().getContentAsString().contains(""+accountTwo.getId()+","));
     }
 
     @Test
-    @Disabled
     void getAllAccounts_ReturnAccountsList_HolderLogged() throws Exception {
 
         MvcResult mvcResult = mockMvc.perform(get("/accounts").with(httpBasic("holder", "123456")))
@@ -164,6 +162,6 @@ class AccountControllerImplTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn();
 
-        assertTrue(mvcResult.getResponse().getContentAsString().contains(""+holder.getId()+""));
+        assertTrue(mvcResult.getResponse().getContentAsString().contains(""+account.getId()+""));
     }
 }

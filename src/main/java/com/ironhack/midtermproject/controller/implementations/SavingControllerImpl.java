@@ -26,7 +26,7 @@ public class SavingControllerImpl implements SavingController {
     }
 
     @Override
-    @GetMapping("accounts/savings")
+    @GetMapping("/accounts/savings")
     @ResponseStatus(HttpStatus.OK)
     public List<SavingDTO> getAll(@AuthenticationPrincipal CustomUserDetails userDetails) {
 
@@ -34,7 +34,7 @@ public class SavingControllerImpl implements SavingController {
     }
 
     @Override
-    @GetMapping("accounts/savings/{id}")
+    @GetMapping("/accounts/savings/{id}")
     @ResponseStatus(HttpStatus.OK)
     public SavingDTO getSaving(@PathVariable(name = "id") int id, @AuthenticationPrincipal CustomUserDetails userDetails) {
 
