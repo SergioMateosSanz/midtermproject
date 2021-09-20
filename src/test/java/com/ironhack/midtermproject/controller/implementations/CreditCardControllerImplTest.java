@@ -126,6 +126,7 @@ class CreditCardControllerImplTest {
         creditCard.setPrimaryOwner(owner);
         creditCard.setBalance(new Money(BigDecimal.TEN));
         creditCard.setPenaltyFee(BigDecimal.ZERO);
+        creditCard.setInterestRate(BigDecimal.valueOf(0.3));
         creditCard.setCreationDate(LocalDate.now());
         creditCardRepository.save(creditCard);
 
@@ -134,6 +135,7 @@ class CreditCardControllerImplTest {
         movement.setBalanceBefore(BigDecimal.ZERO);
         movement.setBalanceAfter(BigDecimal.valueOf(10));
         movement.setMovementType(MovementType.CREATED);
+        movement.setOrderDate(LocalDate.of(2000,1, 1));
         movement.setAccount(creditCard);
         movementRepository.save(movement);
 
@@ -141,6 +143,7 @@ class CreditCardControllerImplTest {
         creditCardTwo.setPrimaryOwner(owner);
         creditCardTwo.setBalance(new Money(BigDecimal.TEN));
         creditCardTwo.setPenaltyFee(BigDecimal.ZERO);
+        creditCardTwo.setInterestRate(BigDecimal.valueOf(0.3));
         creditCardTwo.setCreationDate(LocalDate.now());
         creditCardRepository.save(creditCardTwo);
 
@@ -149,6 +152,7 @@ class CreditCardControllerImplTest {
         movement.setBalanceBefore(BigDecimal.ZERO);
         movement.setBalanceAfter(BigDecimal.valueOf(10));
         movement.setMovementType(MovementType.CREATED);
+        movement.setOrderDate(LocalDate.now());
         movement.setAccount(creditCardTwo);
         movementRepository.save(movement);
 

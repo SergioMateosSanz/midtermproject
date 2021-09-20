@@ -1,5 +1,6 @@
 package com.ironhack.midtermproject.service.implementations;
 
+import com.ironhack.midtermproject.classes.AddedInterestRate;
 import com.ironhack.midtermproject.classes.Money;
 import com.ironhack.midtermproject.controller.dto.CreditCardDTO;
 import com.ironhack.midtermproject.controller.dto.SavingDTO;
@@ -33,6 +34,9 @@ public class CreditCardServiceImpl implements CreditCardService {
 
     @Autowired
     MovementRepository movementRepository;
+
+    @Autowired
+    AddedInterestRate addedInterestRate;
 
     private final BigDecimal PENALTY_FEE = BigDecimal.valueOf(40);
 
@@ -122,6 +126,25 @@ public class CreditCardServiceImpl implements CreditCardService {
             List<CreditCardDTO> returnList = new ArrayList<>();
 
             for (CreditCard creditCard : creditCardList) {
+                if (addedInterestRate.isInterestRateToAddCreditCards(creditCard.getId())) {
+                    BigDecimal amountAfter = addedInterestRate.calculateInterestRateToSet(creditCard.getBalance().getAmount(),
+                            creditCard.getInterestRate());
+                    BigDecimal amountDifference = amountAfter.subtract(creditCard.getBalance().getAmount());
+                    Movement movementInterestRate = new Movement();
+                    movementInterestRate.setTransferAmount(amountDifference);
+                    movementInterestRate.setBalanceBefore(creditCard.getBalance().getAmount());
+                    movementInterestRate.setBalanceAfter(amountAfter);
+                    movementInterestRate.setMovementType(MovementType.INTEREST_RATE);
+                    movementInterestRate.setOrderDate(LocalDate.now());
+                    movementInterestRate.setTimeExecution(LocalDateTime.now());
+                    movementInterestRate.setModificationDate(LocalDate.of(1,1,1));
+                    movementInterestRate.setAccount(creditCard);
+                    movementRepository.save(movementInterestRate);
+
+                    creditCard.setBalance(new Money(amountAfter));
+                    creditCardRepository.save(creditCard);
+                }
+
                 returnList.add(fillOutputInformation(creditCard));
             }
 
@@ -138,6 +161,25 @@ public class CreditCardServiceImpl implements CreditCardService {
 
         if (optionalCreditCard.isPresent()) {
             if (optionalCreditCard.get().getPrimaryOwner().getName().equals(name)) {
+                if (addedInterestRate.isInterestRateToAddCreditCards(optionalCreditCard.get().getId())) {
+                    BigDecimal amountAfter = addedInterestRate.calculateInterestRateToSet(optionalCreditCard.get().getBalance().getAmount(),
+                            optionalCreditCard.get().getInterestRate());
+                    BigDecimal amountDifference = amountAfter.subtract(optionalCreditCard.get().getBalance().getAmount());
+                    Movement movementInterestRate = new Movement();
+                    movementInterestRate.setTransferAmount(amountDifference);
+                    movementInterestRate.setBalanceBefore(optionalCreditCard.get().getBalance().getAmount());
+                    movementInterestRate.setBalanceAfter(amountAfter);
+                    movementInterestRate.setMovementType(MovementType.INTEREST_RATE);
+                    movementInterestRate.setOrderDate(LocalDate.now());
+                    movementInterestRate.setTimeExecution(LocalDateTime.now());
+                    movementInterestRate.setModificationDate(LocalDate.of(1,1,1));
+                    movementInterestRate.setAccount(optionalCreditCard.get());
+                    movementRepository.save(movementInterestRate);
+
+                    optionalCreditCard.get().setBalance(new Money(amountAfter));
+                    creditCardRepository.save(optionalCreditCard.get());
+                }
+
                 return fillOutputInformation(optionalCreditCard.get());
             } else {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access not permitted");
