@@ -11,7 +11,7 @@ import java.math.RoundingMode;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class DecreasedAmountTest {
+class DecreasedPenaltyFeeTest {
 
     private Saving saving;
     private Checking checking;
