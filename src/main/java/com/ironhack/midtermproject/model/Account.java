@@ -1,6 +1,7 @@
 package com.ironhack.midtermproject.model;
 
 import com.ironhack.midtermproject.classes.Money;
+import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
@@ -9,6 +10,7 @@ import java.util.List;
 
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
+@DynamicUpdate
 public class Account {
 
     @Id

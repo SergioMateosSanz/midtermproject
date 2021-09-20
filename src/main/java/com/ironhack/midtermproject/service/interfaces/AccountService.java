@@ -8,4 +8,5 @@ public interface AccountService {
 
     List<AccountDTO> getAllAccountsByAdmin();
     List<AccountDTO> getAllAccountsByHolder(String userName);
+    void updateAmount(int id, AccountDTO accountDTO);
 }

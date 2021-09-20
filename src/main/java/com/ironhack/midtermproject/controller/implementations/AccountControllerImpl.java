@@ -1,15 +1,14 @@
 package com.ironhack.midtermproject.controller.implementations;
 
 import com.ironhack.midtermproject.controller.dto.AccountDTO;
+import com.ironhack.midtermproject.controller.dto.CheckingDTO;
 import com.ironhack.midtermproject.controller.interfaces.AccountController;
 import com.ironhack.midtermproject.security.CustomUserDetails;
 import com.ironhack.midtermproject.service.interfaces.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
@@ -32,5 +31,13 @@ public class AccountControllerImpl implements AccountController {
         } else {
             return accountService.getAllAccountsByHolder(userDetails.getUsername());
         }
+    }
+
+    @Override
+    @PatchMapping("/accounts/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void updateAmount(@PathVariable(name = "id") int id, @RequestBody AccountDTO accountDTO) {
+
+        accountService.updateAmount(id, accountDTO);
     }
 }

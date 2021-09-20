@@ -2,6 +2,7 @@ package com.ironhack.midtermproject.controller.implementations;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ironhack.midtermproject.classes.Money;
+import com.ironhack.midtermproject.controller.dto.AccountDTO;
 import com.ironhack.midtermproject.model.Account;
 import com.ironhack.midtermproject.model.Owner;
 import com.ironhack.midtermproject.model.Role;
@@ -9,12 +10,12 @@ import com.ironhack.midtermproject.model.User;
 import com.ironhack.midtermproject.repository.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -22,11 +23,13 @@ import org.springframework.web.context.WebApplicationContext;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -52,9 +55,11 @@ class AccountControllerImplTest {
     private PasswordEncoder passwordEncoder;
 
     private MockMvc mockMvc;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     Account account;
     Account accountTwo;
+    AccountDTO accountDTO;
 
     @BeforeEach
     void setUp() {
@@ -108,6 +113,8 @@ class AccountControllerImplTest {
         accountTwo.setPrimaryOwner(owner);
         accountRepository.save(accountTwo);
 
+        accountDTO = new AccountDTO();
+        accountDTO.setAmount(BigDecimal.TEN);
     }
 
     @AfterEach
@@ -163,5 +170,46 @@ class AccountControllerImplTest {
                 .andReturn();
 
         assertTrue(mvcResult.getResponse().getContentAsString().contains(""+account.getId()+""));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void updateAmount_NotFound_AccountNotExits() throws Exception {
+
+        String body = objectMapper.writeValueAsString(accountDTO);
+        mockMvc.perform(patch("/accounts/0")
+                        .content(body)
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void update_UnprocessedEntity_EmptyBody() throws Exception {
+
+        accountDTO.setAmount(null);
+        String body = objectMapper.writeValueAsString(accountDTO);
+        mockMvc.perform(patch("/accounts/"+account.getId())
+                        .content(body)
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void update_NoContent_AmountToUpdate() throws Exception {
+
+        String body = objectMapper.writeValueAsString(accountDTO);
+        mockMvc.perform(patch("/accounts/"+account.getId())
+                        .content(body)
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isNoContent());
+
+        Optional<Account> optionalAccount = accountRepository.findById(account.getId());
+        assertTrue(optionalAccount.isPresent());
+        assertEquals(BigDecimal.valueOf(10.00).setScale(2), optionalAccount.get().getBalance().getAmount());
     }
 }

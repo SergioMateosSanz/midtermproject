@@ -8,4 +8,5 @@ import java.util.List;
 public interface AccountController {
 
     List<AccountDTO> getAllAccounts(CustomUserDetails userDetails);
+    void updateAmount(int id, AccountDTO accountDTO);
 }
