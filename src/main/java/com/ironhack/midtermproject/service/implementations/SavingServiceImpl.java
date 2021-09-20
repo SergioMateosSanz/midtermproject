@@ -1,5 +1,6 @@
 package com.ironhack.midtermproject.service.implementations;
 
+import com.ironhack.midtermproject.classes.AddedInterestRate;
 import com.ironhack.midtermproject.classes.Money;
 import com.ironhack.midtermproject.controller.dto.SavingDTO;
 import com.ironhack.midtermproject.enums.AccountStatus;
@@ -41,6 +42,9 @@ public class SavingServiceImpl implements SavingService {
     @Autowired
     RoleRepository roleRepository;
 
+    @Autowired
+    AddedInterestRate addedInterestRate;
+
     private final BigDecimal PENALTY_FEE = BigDecimal.valueOf(40);
 
     @Override
@@ -53,7 +57,7 @@ public class SavingServiceImpl implements SavingService {
         Saving saving = new Saving();
 
         if (savingDTO.getNameTwo() != null) {
-            if (savingDTO.getDateOfBirthTwo() != null){
+            if (savingDTO.getDateOfBirthTwo() != null) {
                 if (!validOwnerTwo(savingDTO)) {
                     throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Resource not processable");
                 }
@@ -111,7 +115,7 @@ public class SavingServiceImpl implements SavingService {
         saving.setStatus(AccountStatus.ACTIVE);
         saving.setPrimaryOwner(primaryOwner);
         saving.setCreationDate(LocalDate.now());
-        saving.setModificationDate(LocalDate.of(1,1,1));
+        saving.setModificationDate(LocalDate.of(1, 1, 1));
         savingRepository.save(saving);
 
         Movement movement = fillMovementData(savingDTO);
@@ -133,6 +137,25 @@ public class SavingServiceImpl implements SavingService {
             List<SavingDTO> returnList = new ArrayList<>();
 
             for (Saving saving : savingList) {
+                if (addedInterestRate.isInterestRateToAddSavings(saving.getId())) {
+                    BigDecimal amountAfter = addedInterestRate.calculateInterestRateToSet(saving.getBalance().getAmount(),
+                            saving.getInterestRate());
+                    BigDecimal amountDifference = amountAfter.subtract(saving.getBalance().getAmount());
+                    Movement movementInterestRate = new Movement();
+                    movementInterestRate.setTransferAmount(amountDifference);
+                    movementInterestRate.setBalanceBefore(saving.getBalance().getAmount());
+                    movementInterestRate.setBalanceAfter(amountAfter);
+                    movementInterestRate.setMovementType(MovementType.INTEREST_RATE);
+                    movementInterestRate.setOrderDate(LocalDate.now());
+                    movementInterestRate.setTimeExecution(LocalDateTime.now());
+                    movementInterestRate.setModificationDate(LocalDate.of(1,1,1));
+                    movementInterestRate.setAccount(saving);
+                    movementRepository.save(movementInterestRate);
+
+                    saving.setBalance(new Money(amountAfter));
+                    savingRepository.save(saving);
+                }
+
                 returnList.add(fillOutputInformation(saving));
             }
 
@@ -149,6 +172,24 @@ public class SavingServiceImpl implements SavingService {
 
         if (optionalSaving.isPresent()) {
             if (optionalSaving.get().getPrimaryOwner().getName().equals(name)) {
+                if (addedInterestRate.isInterestRateToAddSavings(optionalSaving.get().getId())) {
+                    BigDecimal amountAfter = addedInterestRate.calculateInterestRateToSet(optionalSaving.get().getBalance().getAmount(),
+                            optionalSaving.get().getInterestRate());
+                    BigDecimal amountDifference = amountAfter.subtract(optionalSaving.get().getBalance().getAmount());
+                    Movement movementInterestRate = new Movement();
+                    movementInterestRate.setTransferAmount(amountDifference);
+                    movementInterestRate.setBalanceBefore(optionalSaving.get().getBalance().getAmount());
+                    movementInterestRate.setBalanceAfter(amountAfter);
+                    movementInterestRate.setMovementType(MovementType.INTEREST_RATE);
+                    movementInterestRate.setOrderDate(LocalDate.now());
+                    movementInterestRate.setTimeExecution(LocalDateTime.now());
+                    movementInterestRate.setModificationDate(LocalDate.of(1,1,1));
+                    movementInterestRate.setAccount(optionalSaving.get());
+                    movementRepository.save(movementInterestRate);
+
+                    optionalSaving.get().setBalance(new Money(amountAfter));
+                    savingRepository.save(optionalSaving.get());
+                }
                 return fillOutputInformation(optionalSaving.get());
             } else {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access not permitted");
@@ -187,7 +228,7 @@ public class SavingServiceImpl implements SavingService {
         address.setCountry(country);
         address.setMailingAddress(mailingAddress);
         address.setCreationDate(LocalDate.now());
-        address.setModificationDate(LocalDate.of(1,1,1));
+        address.setModificationDate(LocalDate.of(1, 1, 1));
 
         return address;
     }
@@ -217,7 +258,7 @@ public class SavingServiceImpl implements SavingService {
         secondaryOwner.setName(savingDTO.getNameTwo());
         secondaryOwner.setDateOfBirth(savingDTO.getDateOfBirthTwo());
         secondaryOwner.setCreationDate(LocalDate.now());
-        secondaryOwner.setModificationDate(LocalDate.of(1,1,1));
+        secondaryOwner.setModificationDate(LocalDate.of(1, 1, 1));
 
         return secondaryOwner;
     }
@@ -229,7 +270,7 @@ public class SavingServiceImpl implements SavingService {
         primaryOwner.setName(savingDTO.getName());
         primaryOwner.setDateOfBirth(savingDTO.getDateOfBirth());
         primaryOwner.setCreationDate(LocalDate.now());
-        primaryOwner.setModificationDate(LocalDate.of(1,1,1));
+        primaryOwner.setModificationDate(LocalDate.of(1, 1, 1));
 
         return primaryOwner;
     }
@@ -243,7 +284,7 @@ public class SavingServiceImpl implements SavingService {
         movement.setMovementType(MovementType.CREATED);
         movement.setOrderDate(LocalDate.now());
         movement.setTimeExecution(LocalDateTime.now());
-        movement.setModificationDate(LocalDate.of(1,1,1));
+        movement.setModificationDate(LocalDate.of(1, 1, 1));
 
         return movement;
     }

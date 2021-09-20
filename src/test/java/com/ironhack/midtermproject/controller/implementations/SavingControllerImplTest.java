@@ -125,6 +125,7 @@ class SavingControllerImplTest {
         saving.setPrimaryOwner(owner);
         saving.setBalance(new Money(BigDecimal.TEN));
         saving.setPenaltyFee(BigDecimal.ZERO);
+        saving.setInterestRate(BigDecimal.valueOf(0.3));
         saving.setCreationDate(LocalDate.now());
         savingRepository.save(saving);
 
@@ -133,6 +134,7 @@ class SavingControllerImplTest {
         movement.setBalanceBefore(BigDecimal.ZERO);
         movement.setBalanceAfter(BigDecimal.valueOf(10));
         movement.setMovementType(MovementType.CREATED);
+        movement.setOrderDate(LocalDate.of(2000,1, 1));
         movement.setAccount(saving);
         movementRepository.save(movement);
 
@@ -140,6 +142,7 @@ class SavingControllerImplTest {
         savingTwo.setPrimaryOwner(owner);
         savingTwo.setBalance(new Money(BigDecimal.TEN));
         savingTwo.setPenaltyFee(BigDecimal.ZERO);
+        savingTwo.setInterestRate(BigDecimal.valueOf(0.3));
         savingTwo.setCreationDate(LocalDate.now());
         savingRepository.save(savingTwo);
 
@@ -148,6 +151,7 @@ class SavingControllerImplTest {
         movement.setBalanceBefore(BigDecimal.ZERO);
         movement.setBalanceAfter(BigDecimal.valueOf(10));
         movement.setMovementType(MovementType.CREATED);
+        movement.setOrderDate(LocalDate.now());
         movement.setAccount(savingTwo);
         movementRepository.save(movement);
 
