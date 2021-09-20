@@ -6,6 +6,7 @@ import com.ironhack.midtermproject.repository.AccountRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.List;
@@ -40,5 +41,21 @@ public class AddedInterestRate {
         }
 
         return Period.between(accountList.get(0).getMovementList().get(0).getOrderDate(), now).getMonths() != 0;
+    }
+
+    public BigDecimal calculateInterestRateToSet(BigDecimal actualAmount, BigDecimal interestRate) {
+
+        BigDecimal amountToReturn = BigDecimal.ZERO;
+        switch (actualAmount.compareTo(BigDecimal.ZERO)){
+            case -1:
+            case 0:
+                amountToReturn = actualAmount;
+                break;
+            case 1:
+                BigDecimal amountToAdd = interestRate.multiply(actualAmount);
+                amountToReturn = actualAmount.add(amountToAdd);
+                break;
+        }
+        return amountToReturn;
     }
 }

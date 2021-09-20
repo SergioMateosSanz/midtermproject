@@ -193,4 +193,29 @@ class AddedInterestRateTest {
         assertFalse(addedInterestRate.isInterestRateToAddCreditCards(account2000.getId()));
     }
 
+    @Test
+    void calculateInterestRateToSet_CorrectCalculation_AmountPositive() {
+
+        BigDecimal result = BigDecimal.valueOf(110).setScale(1);
+        assertEquals(result, addedInterestRate.calculateInterestRateToSet(BigDecimal.valueOf(100), BigDecimal.valueOf(0.1)));
+
+        result = BigDecimal.valueOf(105).setScale(2);
+        assertEquals(result, addedInterestRate.calculateInterestRateToSet(BigDecimal.valueOf(100), BigDecimal.valueOf(0.05)));
+    }
+
+    @Test
+    void calculateInterestRateToSet_ReturnActualAmount_AmountZero() {
+
+        assertEquals(BigDecimal.ZERO, addedInterestRate.calculateInterestRateToSet(BigDecimal.ZERO, BigDecimal.valueOf(0.1)));
+        assertEquals(BigDecimal.ZERO, addedInterestRate.calculateInterestRateToSet(BigDecimal.ZERO, BigDecimal.valueOf(0.03)));
+        assertEquals(BigDecimal.ZERO, addedInterestRate.calculateInterestRateToSet(BigDecimal.ZERO, BigDecimal.valueOf(0.0025)));
+    }
+
+    @Test
+    void calculateInterestRateToSet_ReturnActualAmount_AmountNegative() {
+
+        assertEquals(BigDecimal.valueOf(-1), addedInterestRate.calculateInterestRateToSet(BigDecimal.valueOf(-1), BigDecimal.valueOf(0.1)));
+        assertEquals(BigDecimal.valueOf(-10), addedInterestRate.calculateInterestRateToSet(BigDecimal.valueOf(-10), BigDecimal.valueOf(0.03)));
+        assertEquals(BigDecimal.valueOf(-333), addedInterestRate.calculateInterestRateToSet(BigDecimal.valueOf(-333), BigDecimal.valueOf(0.0025)));
+    }
 }
