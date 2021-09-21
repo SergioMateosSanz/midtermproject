@@ -12,4 +12,5 @@ public interface CreditCardController {
     List<CreditCardDTO> getAll(CustomUserDetails userDetails);
     CreditCardDTO getCreditCard(int id, CustomUserDetails userDetails);
     MovementDTO createMovement(int id, MovementDTO movementDTO, CustomUserDetails userDetails);
+    List<MovementDTO> getMovements(int id, CustomUserDetails userDetails);
 }

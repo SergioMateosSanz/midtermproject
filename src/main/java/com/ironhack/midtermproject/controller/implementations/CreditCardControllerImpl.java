@@ -50,4 +50,12 @@ public class CreditCardControllerImpl implements CreditCardController {
 
         return creditCardService.createMovement(id, movementDTO, userDetails.getUsername());
     }
+
+    @Override
+    @GetMapping("/accounts/credits/{id}/movements")
+    @ResponseStatus(HttpStatus.OK)
+    public List<MovementDTO> getMovements(@PathVariable(name = "id") int id, @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        return creditCardService.getMovements(id, userDetails.getUsername());
+    }
 }

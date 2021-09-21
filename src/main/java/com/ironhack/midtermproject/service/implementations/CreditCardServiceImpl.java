@@ -4,7 +4,6 @@ import com.ironhack.midtermproject.classes.AddedInterestRate;
 import com.ironhack.midtermproject.classes.Money;
 import com.ironhack.midtermproject.classes.MovementDTO;
 import com.ironhack.midtermproject.controller.dto.CreditCardDTO;
-import com.ironhack.midtermproject.controller.dto.SavingDTO;
 import com.ironhack.midtermproject.enums.MovementType;
 import com.ironhack.midtermproject.model.*;
 import com.ironhack.midtermproject.repository.*;
@@ -23,6 +22,9 @@ import java.util.Optional;
 
 @Service
 public class CreditCardServiceImpl implements CreditCardService {
+
+    @Autowired
+    AccountRepository accountRepository;
 
     @Autowired
     CreditCardRepository creditCardRepository;
@@ -243,6 +245,24 @@ public class CreditCardServiceImpl implements CreditCardService {
         }
     }
 
+    @Override
+    public List<MovementDTO> getMovements(int id, String name) {
+
+        Optional<CreditCard> optionalCreditCard = creditCardRepository.findById(id);
+
+        if (optionalCreditCard.isPresent()) {
+            if (optionalCreditCard.get().getPrimaryOwner().getName().equals(name)) {
+                List<Account> movementList = accountRepository.getByIdWithMovements(id);
+                return fillOutputAllMovements(movementList);
+            } else {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access not permitted");
+            }
+        } else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Resource not found");
+        }
+
+    }
+
     private boolean validInputDTO(CreditCardDTO creditCardDTO) {
 
         if ((creditCardDTO.getName().equals("")) || (creditCardDTO.getDateOfBirth() == null) || (creditCardDTO.getDirection().equals(""))
@@ -377,8 +397,31 @@ public class CreditCardServiceImpl implements CreditCardService {
         returnDTO.setTimeExecution(movement.getTimeExecution());
         returnDTO.setModificationDate(movement.getModificationDate());
 
-
         return returnDTO;
+    }
+
+    private List<MovementDTO> fillOutputAllMovements(List<Account> studentList){
+
+        List<MovementDTO> returnList = new ArrayList<>();
+        Movement movement;
+
+        for (int i = 0; i< studentList.size(); i++) {
+            MovementDTO movementDTO = new MovementDTO();
+            movement = studentList.get(i).getMovementList().get(i);
+
+            movementDTO.setId(movement.getId());
+            movementDTO.setTransferAmount(movement.getTransferAmount());
+            movementDTO.setBalanceBefore(movement.getBalanceBefore());
+            movementDTO.setBalanceAfter(movement.getBalanceAfter());
+            movementDTO.setMovementType(movement.getMovementType());
+            movementDTO.setOrderDate(movement.getOrderDate());
+            movementDTO.setTimeExecution(movement.getTimeExecution());
+            movementDTO.setModificationDate(movement.getModificationDate());
+
+            returnList.add(movementDTO);
+        }
+
+        return returnList;
     }
 
 }
