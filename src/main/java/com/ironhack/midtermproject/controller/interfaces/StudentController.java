@@ -11,4 +11,5 @@ public interface StudentController {
     List<CheckingDTO> getAll(CustomUserDetails userDetails);
     CheckingDTO getStudent(int id, CustomUserDetails userDetails);
     MovementDTO createMovement(int id, MovementDTO movementDTO, CustomUserDetails userDetails);
+    List<MovementDTO> getMovements(int id, CustomUserDetails userDetails);
 }

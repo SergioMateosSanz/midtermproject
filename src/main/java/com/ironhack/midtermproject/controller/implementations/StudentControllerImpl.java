@@ -42,4 +42,12 @@ public class StudentControllerImpl implements StudentController {
 
         return studentService.createMovement(id, movementDTO, userDetails.getUsername());
     }
+
+    @Override
+    @GetMapping("/accounts/students/{id}/movements")
+    @ResponseStatus(HttpStatus.OK)
+    public List<MovementDTO> getMovements(@PathVariable(name = "id") int id, @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        return studentService.getMovements(id, userDetails.getUsername());
+    }
 }

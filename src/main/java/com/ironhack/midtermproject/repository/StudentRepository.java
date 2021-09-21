@@ -1,7 +1,6 @@
 package com.ironhack.midtermproject.repository;
 
 import com.ironhack.midtermproject.model.Owner;
-import com.ironhack.midtermproject.model.Saving;
 import com.ironhack.midtermproject.model.Student;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

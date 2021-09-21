@@ -26,6 +26,9 @@ import java.util.Optional;
 public class StudentServiceImpl implements StudentService {
 
     @Autowired
+    AccountRepository accountRepository;
+
+    @Autowired
     StudentRepository studentRepository;
 
     @Autowired
@@ -211,6 +214,23 @@ public class StudentServiceImpl implements StudentService {
         }
     }
 
+    @Override
+    public List<MovementDTO> getMovements(int id, String name) {
+
+        Optional<Student> optionalStudent = studentRepository.findById(id);
+
+        if (optionalStudent.isPresent()) {
+            if (optionalStudent.get().getPrimaryOwner().getName().equals(name)) {
+                List<Account> movementList = accountRepository.getByIdWithMovements(id);
+                return fillOutputAllMovements(movementList);
+            } else {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access not permitted");
+            }
+        } else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Resource not found");
+        }
+    }
+
     private boolean validInputDTO(CheckingDTO checkingDTO) {
 
         if ((checkingDTO.getName().equals("")) || (checkingDTO.getDateOfBirth() == null) || (checkingDTO.getDirection().equals(""))
@@ -361,7 +381,30 @@ public class StudentServiceImpl implements StudentService {
         returnDTO.setTimeExecution(movement.getTimeExecution());
         returnDTO.setModificationDate(movement.getModificationDate());
 
-
         return returnDTO;
+    }
+
+    private List<MovementDTO> fillOutputAllMovements(List<Account> studentList){
+
+        List<MovementDTO> returnList = new ArrayList<>();
+        Movement movement;
+
+        for (int i = 0; i< studentList.size(); i++) {
+            MovementDTO movementDTO = new MovementDTO();
+            movement = studentList.get(i).getMovementList().get(i);
+
+            movementDTO.setId(movement.getId());
+            movementDTO.setTransferAmount(movement.getTransferAmount());
+            movementDTO.setBalanceBefore(movement.getBalanceBefore());
+            movementDTO.setBalanceAfter(movement.getBalanceAfter());
+            movementDTO.setMovementType(movement.getMovementType());
+            movementDTO.setOrderDate(movement.getOrderDate());
+            movementDTO.setTimeExecution(movement.getTimeExecution());
+            movementDTO.setModificationDate(movement.getModificationDate());
+
+            returnList.add(movementDTO);
+        }
+
+        return returnList;
     }
 }
