@@ -189,7 +189,7 @@ public class StudentServiceImpl implements StudentService {
                 }
 
                 Movement movement = new Movement();
-                movement.setTransferAmount(movementDTO.getTransferAmount());
+                movement.setTransferAmount(movementDTO.getTransferAmount().negate());
                 movement.setBalanceBefore(amountInAccount);
                 movement.setBalanceAfter(amountAfterMovement);
                 movement.setMovementType(MovementType.DECREASED);
@@ -353,7 +353,7 @@ public class StudentServiceImpl implements StudentService {
         MovementDTO returnDTO = new MovementDTO();
 
         returnDTO.setId(movement.getId());
-        returnDTO.setTransferAmount(movement.getTransferAmount());
+        returnDTO.setTransferAmount(movement.getTransferAmount().negate());
         returnDTO.setBalanceBefore(movement.getBalanceBefore());
         returnDTO.setBalanceAfter(movement.getBalanceAfter());
         returnDTO.setMovementType(movement.getMovementType());
