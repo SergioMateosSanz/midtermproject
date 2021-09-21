@@ -1,5 +1,6 @@
 package com.ironhack.midtermproject.service.implementations;
 
+import com.ironhack.midtermproject.classes.DecreasedMonthlyMaintenanceFee;
 import com.ironhack.midtermproject.classes.Money;
 import com.ironhack.midtermproject.controller.dto.CheckingDTO;
 import com.ironhack.midtermproject.controller.dto.SavingDTO;
@@ -42,6 +43,9 @@ public class CheckingServiceImpl implements CheckingService {
     MovementRepository movementRepository;
 
     @Autowired
+    DecreasedMonthlyMaintenanceFee decreasedMonthlyMaintenanceFee;
+
+    @Autowired
     UserRepository userRepository;
 
     @Autowired
@@ -77,6 +81,24 @@ public class CheckingServiceImpl implements CheckingService {
             List<CheckingDTO> returnList = new ArrayList<>();
 
             for (Checking checking : checkingList) {
+                if (decreasedMonthlyMaintenanceFee.isMonthlyMaintenanceFeeToAdd(checking.getId())) {
+                    BigDecimal amountAfter = decreasedMonthlyMaintenanceFee.calculateMonthlyMaintenanceFeeToSet(
+                            checking.getBalance().getAmount(), checking.getMonthlyMaintenanceFee());
+                    Movement movementMonthlyMaintenanceFee = new Movement();
+                    movementMonthlyMaintenanceFee.setTransferAmount(checking.getMonthlyMaintenanceFee().negate());
+                    movementMonthlyMaintenanceFee.setBalanceBefore(checking.getBalance().getAmount());
+                    movementMonthlyMaintenanceFee.setBalanceAfter(amountAfter);
+                    movementMonthlyMaintenanceFee.setMovementType(MovementType.MONTHLY_MAINTENANCE);
+                    movementMonthlyMaintenanceFee.setOrderDate(LocalDate.now());
+                    movementMonthlyMaintenanceFee.setTimeExecution(LocalDateTime.now());
+                    movementMonthlyMaintenanceFee.setModificationDate(LocalDate.of(1,1,1));
+                    movementMonthlyMaintenanceFee.setAccount(checking);
+                    movementRepository.save(movementMonthlyMaintenanceFee);
+
+                    checking.setBalance(new Money(amountAfter));
+                    checkingRepository.save(checking);
+                }
+
                 returnList.add(fillOutputInformation(checking));
             }
 
@@ -93,6 +115,24 @@ public class CheckingServiceImpl implements CheckingService {
 
         if (optionalChecking.isPresent()) {
             if (optionalChecking.get().getPrimaryOwner().getName().equals(name)) {
+                if (decreasedMonthlyMaintenanceFee.isMonthlyMaintenanceFeeToAdd(optionalChecking.get().getId())) {
+                    BigDecimal amountAfter = decreasedMonthlyMaintenanceFee.calculateMonthlyMaintenanceFeeToSet(
+                            optionalChecking.get().getBalance().getAmount(), optionalChecking.get().getMonthlyMaintenanceFee());
+                    Movement movementMonthlyMaintenanceFee = new Movement();
+                    movementMonthlyMaintenanceFee.setTransferAmount(optionalChecking.get().getMonthlyMaintenanceFee().negate());
+                    movementMonthlyMaintenanceFee.setBalanceBefore(optionalChecking.get().getBalance().getAmount());
+                    movementMonthlyMaintenanceFee.setBalanceAfter(amountAfter);
+                    movementMonthlyMaintenanceFee.setMovementType(MovementType.MONTHLY_MAINTENANCE);
+                    movementMonthlyMaintenanceFee.setOrderDate(LocalDate.now());
+                    movementMonthlyMaintenanceFee.setTimeExecution(LocalDateTime.now());
+                    movementMonthlyMaintenanceFee.setModificationDate(LocalDate.of(1,1,1));
+                    movementMonthlyMaintenanceFee.setAccount(optionalChecking.get());
+                    movementRepository.save(movementMonthlyMaintenanceFee);
+
+                    optionalChecking.get().setBalance(new Money(amountAfter));
+                    checkingRepository.save(optionalChecking.get());
+                }
+
                 return fillOutputInformation(optionalChecking.get());
             } else {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access not permitted");

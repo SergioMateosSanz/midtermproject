@@ -130,6 +130,7 @@ class CheckingControllerImplTest {
         checking.setBalance(new Money(BigDecimal.TEN));
         checking.setPenaltyFee(BigDecimal.ZERO);
         checking.setCreationDate(LocalDate.now());
+        checking.setMonthlyMaintenanceFee(BigDecimal.valueOf(12));
         checkingRepository.save(checking);
 
         Movement movement = new Movement();
@@ -137,6 +138,7 @@ class CheckingControllerImplTest {
         movement.setBalanceBefore(BigDecimal.ZERO);
         movement.setBalanceAfter(BigDecimal.valueOf(10));
         movement.setMovementType(MovementType.CREATED);
+        movement.setOrderDate(LocalDate.now().minusMonths(1));
         movement.setAccount(checking);
         movementRepository.save(movement);
 
@@ -145,6 +147,7 @@ class CheckingControllerImplTest {
         checkingTwo.setBalance(new Money(BigDecimal.TEN));
         checkingTwo.setPenaltyFee(BigDecimal.ZERO);
         checkingTwo.setCreationDate(LocalDate.now());
+        checkingTwo.setMonthlyMaintenanceFee(BigDecimal.valueOf(12));
         checkingRepository.save(checkingTwo);
 
         movement = new Movement();
@@ -152,6 +155,7 @@ class CheckingControllerImplTest {
         movement.setBalanceBefore(BigDecimal.ZERO);
         movement.setBalanceAfter(BigDecimal.valueOf(10));
         movement.setMovementType(MovementType.CREATED);
+        movement.setOrderDate(LocalDate.now());
         movement.setAccount(checkingTwo);
         movementRepository.save(movement);
 
