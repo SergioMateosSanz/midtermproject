@@ -1,5 +1,6 @@
 package com.ironhack.midtermproject.controller.implementations;
 
+import com.ironhack.midtermproject.classes.MovementDTO;
 import com.ironhack.midtermproject.controller.dto.CheckingDTO;
 import com.ironhack.midtermproject.controller.interfaces.CheckingController;
 import com.ironhack.midtermproject.security.CustomUserDetails;
@@ -39,5 +40,14 @@ public class CheckingControllerImpl implements CheckingController {
     public CheckingDTO getChecking(@PathVariable(name = "id") int id, @AuthenticationPrincipal CustomUserDetails userDetails) {
 
         return chekingService.getChecking(id, userDetails.getUsername());
+    }
+
+    @Override
+    @PostMapping("/accounts/checkings/{id}/movements")
+    @ResponseStatus(HttpStatus.CREATED)
+    public MovementDTO createMovement(@PathVariable(name = "id") int id, @RequestBody MovementDTO movementDTO,
+                                      @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        return chekingService.createMovement(id, movementDTO, userDetails.getUsername());
     }
 }

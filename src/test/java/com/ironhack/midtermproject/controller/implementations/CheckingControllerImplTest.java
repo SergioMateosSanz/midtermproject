@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.ironhack.midtermproject.classes.Money;
+import com.ironhack.midtermproject.classes.MovementDTO;
 import com.ironhack.midtermproject.controller.dto.CheckingDTO;
 import com.ironhack.midtermproject.controller.dto.SavingDTO;
 import com.ironhack.midtermproject.enums.MovementType;
@@ -67,6 +68,7 @@ class CheckingControllerImplTest {
     CheckingDTO checkingDTO;
     Checking checking;
     Checking checkingTwo;
+    MovementDTO movementDTO;
 
     private MockMvc mockMvc;
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -128,7 +130,8 @@ class CheckingControllerImplTest {
         checking = new Checking();
         checking.setPrimaryOwner(owner);
         checking.setBalance(new Money(BigDecimal.TEN));
-        checking.setPenaltyFee(BigDecimal.ZERO);
+        checking.setPenaltyFee(BigDecimal.valueOf(3));
+        checking.setMinimumBalance(BigDecimal.TEN);
         checking.setCreationDate(LocalDate.now());
         checking.setMonthlyMaintenanceFee(BigDecimal.valueOf(12));
         checkingRepository.save(checking);
@@ -144,8 +147,9 @@ class CheckingControllerImplTest {
 
         checkingTwo = new Checking();
         checkingTwo.setPrimaryOwner(owner);
-        checkingTwo.setBalance(new Money(BigDecimal.TEN));
+        checkingTwo.setBalance(new Money(BigDecimal.valueOf(1000)));
         checkingTwo.setPenaltyFee(BigDecimal.ZERO);
+        checkingTwo.setMinimumBalance(BigDecimal.ZERO);
         checkingTwo.setCreationDate(LocalDate.now());
         checkingTwo.setMonthlyMaintenanceFee(BigDecimal.valueOf(12));
         checkingRepository.save(checkingTwo);
@@ -166,6 +170,8 @@ class CheckingControllerImplTest {
         holderRole = new Role("HOLDER");
         holderRole.setUser(userTwo);
         roleRepository.save(holderRole);
+
+        movementDTO = new MovementDTO();
     }
 
     @AfterEach
@@ -366,5 +372,113 @@ class CheckingControllerImplTest {
                 .andReturn();
         assertTrue(mvcResult.getResponse().getContentAsString(StandardCharsets.UTF_8).contains(""+checking.getId()+""));
         assertTrue(mvcResult.getResponse().getContentAsString(StandardCharsets.UTF_8).contains("Michael Douglas"));
+    }
+
+    @Test
+    void createMovement_UnprocessedEntity_NullTransferAmount() throws Exception {
+
+        movementDTO.setTransferAmount(null);
+        String body = objectMapper.writeValueAsString(movementDTO);
+        mockMvc.perform(post("/accounts/checkings/"+checking.getId()+"/movements")
+                        .with(httpBasic("Andres Iniesta", "123456"))
+                        .content(body)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .characterEncoding("UTF-8")
+                )
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
+    void createMovement_UnprocessedEntity_TransferAmountZero() throws Exception {
+
+        movementDTO.setTransferAmount(BigDecimal.ZERO);
+        String body = objectMapper.writeValueAsString(movementDTO);
+        mockMvc.perform(post("/accounts/checkings/"+checking.getId()+"/movements")
+                        .with(httpBasic("Andres Iniesta", "123456"))
+                        .content(body)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .characterEncoding("UTF-8")
+                )
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
+    void createMovement_NotFound_AccountNotExits() throws Exception {
+
+        movementDTO.setTransferAmount(BigDecimal.TEN);
+        String body = objectMapper.writeValueAsString(movementDTO);
+        mockMvc.perform(post("/accounts/checkings/0/movements")
+                        .with(httpBasic("Andres Iniesta", "123456"))
+                        .content(body)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .characterEncoding("UTF-8")
+                )
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void createMovement_Forbidden_AccountOtherOwner() throws Exception {
+
+        movementDTO.setTransferAmount(BigDecimal.TEN);
+        String body = objectMapper.writeValueAsString(movementDTO);
+        mockMvc.perform(post("/accounts/checkings/"+checking.getId()+"/movements")
+                        .with(httpBasic("Andrés Iniesta", "123456"))
+                        .content(body)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .characterEncoding("UTF-8")
+                )
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void createMovement_UnprocessedEntity_NotEnoughFounds() throws Exception {
+
+        movementDTO.setTransferAmount(BigDecimal.valueOf(100000000));
+        String body = objectMapper.writeValueAsString(movementDTO);
+        mockMvc.perform(post("/accounts/checkings/"+checking.getId()+"/movements")
+                        .with(httpBasic("Michael Douglas", "123456"))
+                        .content(body)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .characterEncoding("UTF-8")
+                )
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
+    void createMovement_Created_ValidationOk_WithPenaltyFee() throws Exception {
+
+        movementDTO.setTransferAmount(BigDecimal.valueOf(1));
+        String body = objectMapper.writeValueAsString(movementDTO);
+        MvcResult mvcResult = mockMvc.perform(post("/accounts/checkings/"+checking.getId()+"/movements")
+                        .with(httpBasic("Michael Douglas", "123456"))
+                        .content(body)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .characterEncoding("UTF-8")
+                )
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        assertTrue(mvcResult.getResponse().getContentAsString(StandardCharsets.UTF_8).contains("1"));
+        assertEquals(checking.getBalance().getAmount().subtract(BigDecimal.valueOf(1).add(BigDecimal.valueOf(3))),
+                checkingRepository.findById(checking.getId()).get().getBalance().getAmount());
+    }
+
+    @Test
+    void createMovement_Created_ValidationOk_WithoutPenaltyFee() throws Exception {
+
+        movementDTO.setTransferAmount(BigDecimal.valueOf(1));
+        String body = objectMapper.writeValueAsString(movementDTO);
+        MvcResult mvcResult = mockMvc.perform(post("/accounts/checkings/"+checkingTwo.getId()+"/movements")
+                        .with(httpBasic("Michael Douglas", "123456"))
+                        .content(body)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .characterEncoding("UTF-8")
+                )
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        assertTrue(mvcResult.getResponse().getContentAsString(StandardCharsets.UTF_8).contains("1"));
+        assertEquals(checkingTwo.getBalance().getAmount().subtract(BigDecimal.valueOf(1)),
+                checkingRepository.findById(checkingTwo.getId()).get().getBalance().getAmount());
     }
 }
