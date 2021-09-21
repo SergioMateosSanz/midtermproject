@@ -1,5 +1,6 @@
 package com.ironhack.midtermproject.controller.implementations;
 
+import com.ironhack.midtermproject.classes.MovementDTO;
 import com.ironhack.midtermproject.controller.dto.CheckingDTO;
 import com.ironhack.midtermproject.controller.interfaces.StudentController;
 import com.ironhack.midtermproject.security.CustomUserDetails;
@@ -7,10 +8,7 @@ import com.ironhack.midtermproject.service.interfaces.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -34,5 +32,14 @@ public class StudentControllerImpl implements StudentController {
     public CheckingDTO getStudent(@PathVariable(name = "id") int id, @AuthenticationPrincipal CustomUserDetails userDetails) {
 
         return studentService.getStudent(id, userDetails.getUsername());
+    }
+
+    @Override
+    @PostMapping("/accounts/students/{id}/movements")
+    @ResponseStatus(HttpStatus.CREATED)
+    public MovementDTO createMovement(@PathVariable(name = "id") int id, @RequestBody MovementDTO movementDTO,
+                                      @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        return studentService.createMovement(id, movementDTO, userDetails.getUsername());
     }
 }

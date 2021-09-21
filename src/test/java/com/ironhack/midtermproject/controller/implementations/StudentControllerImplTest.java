@@ -1,6 +1,8 @@
 package com.ironhack.midtermproject.controller.implementations;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ironhack.midtermproject.classes.Money;
+import com.ironhack.midtermproject.classes.MovementDTO;
 import com.ironhack.midtermproject.enums.MovementType;
 import com.ironhack.midtermproject.model.*;
 import com.ironhack.midtermproject.repository.*;
@@ -24,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -56,8 +59,10 @@ class StudentControllerImplTest {
 
     Student student;
     Student studentTwo;
+    MovementDTO movementDTO;
 
     private MockMvc mockMvc;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @BeforeEach
     void setUp() {
@@ -126,6 +131,8 @@ class StudentControllerImplTest {
         holderRole = new Role("HOLDER");
         holderRole.setUser(userTwo);
         roleRepository.save(holderRole);
+
+        movementDTO = new MovementDTO();
     }
 
     @AfterEach
@@ -183,5 +190,86 @@ class StudentControllerImplTest {
                 .andReturn();
         assertTrue(mvcResult.getResponse().getContentAsString(StandardCharsets.UTF_8).contains(""+student.getId()+""));
         assertTrue(mvcResult.getResponse().getContentAsString(StandardCharsets.UTF_8).contains("Michael Douglas"));
+    }
+
+    @Test
+    void createMovement_UnprocessedEntity_NullTransferAmount() throws Exception {
+
+        movementDTO.setTransferAmount(null);
+        String body = objectMapper.writeValueAsString(movementDTO);
+        mockMvc.perform(post("/accounts/students/"+student.getId()+"/movements").with(httpBasic("Andres Iniesta", "123456"))
+                        .content(body)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .characterEncoding("UTF-8")
+                )
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
+    void createMovement_UnprocessedEntity_TransferAmountZero() throws Exception {
+
+        movementDTO.setTransferAmount(BigDecimal.ZERO);
+        String body = objectMapper.writeValueAsString(movementDTO);
+        mockMvc.perform(post("/accounts/students/"+student.getId()+"/movements").with(httpBasic("Andres Iniesta", "123456"))
+                        .content(body)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .characterEncoding("UTF-8")
+                )
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
+    void createMovement_NotFound_AccountNotExits() throws Exception {
+
+        movementDTO.setTransferAmount(BigDecimal.TEN);
+        String body = objectMapper.writeValueAsString(movementDTO);
+        mockMvc.perform(post("/accounts/students/0/movements").with(httpBasic("Andres Iniesta", "123456"))
+                        .content(body)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .characterEncoding("UTF-8")
+                )
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void createMovement_Forbidden_AccountOtherOwner() throws Exception {
+
+        movementDTO.setTransferAmount(BigDecimal.TEN);
+        String body = objectMapper.writeValueAsString(movementDTO);
+        mockMvc.perform(post("/accounts/students/"+student.getId()+"/movements").with(httpBasic("Andrés Iniesta", "123456"))
+                        .content(body)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .characterEncoding("UTF-8")
+                )
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void createMovement_UnprocessedEntity_NotEnoughFounds() throws Exception {
+
+        movementDTO.setTransferAmount(BigDecimal.valueOf(100000000));
+        String body = objectMapper.writeValueAsString(movementDTO);
+        mockMvc.perform(post("/accounts/students/"+student.getId()+"/movements").with(httpBasic("Michael Douglas", "123456"))
+                        .content(body)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .characterEncoding("UTF-8")
+                )
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
+    void createMovement_Created_ValidationOk() throws Exception {
+
+        movementDTO.setTransferAmount(BigDecimal.valueOf(1));
+        String body = objectMapper.writeValueAsString(movementDTO);
+        MvcResult mvcResult = mockMvc.perform(post("/accounts/students/"+student.getId()+"/movements").with(httpBasic("Michael Douglas", "123456"))
+                        .content(body)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .characterEncoding("UTF-8")
+                )
+                .andExpect(status().isCreated())
+                .andReturn();
+        assertTrue(mvcResult.getResponse().getContentAsString(StandardCharsets.UTF_8).contains("1"));
+        assertEquals(student.getBalance().getAmount().subtract(BigDecimal.valueOf(1)), studentRepository.findById(student.getId()).get().getBalance().getAmount());
     }
 }

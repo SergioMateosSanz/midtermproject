@@ -1,6 +1,7 @@
 package com.ironhack.midtermproject.service.implementations;
 
 import com.ironhack.midtermproject.classes.Money;
+import com.ironhack.midtermproject.classes.MovementDTO;
 import com.ironhack.midtermproject.controller.dto.CheckingDTO;
 import com.ironhack.midtermproject.controller.dto.SavingDTO;
 import com.ironhack.midtermproject.enums.AccountStatus;
@@ -54,7 +55,7 @@ public class StudentServiceImpl implements StudentService {
         Student student = new Student();
 
         if (checkingDTO.getNameTwo() != null) {
-            if (checkingDTO.getDateOfBirthTwo() != null){
+            if (checkingDTO.getDateOfBirthTwo() != null) {
                 if (!validOwnerTwo(checkingDTO)) {
                     throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Resource not processable");
                 }
@@ -110,7 +111,7 @@ public class StudentServiceImpl implements StudentService {
         student.setStatus(AccountStatus.ACTIVE);
         student.setPrimaryOwner(primaryOwner);
         student.setCreationDate(LocalDate.now());
-        student.setModificationDate(LocalDate.of(1,1,1));
+        student.setModificationDate(LocalDate.of(1, 1, 1));
         studentRepository.save(student);
 
         Movement movement = fillMovementData(checkingDTO);
@@ -157,6 +158,59 @@ public class StudentServiceImpl implements StudentService {
         }
     }
 
+    @Override
+    public MovementDTO createMovement(int id, MovementDTO movementDTO, String name) {
+
+        if (movementDTO.getTransferAmount() == null) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Resource not processable");
+        }
+
+        switch (movementDTO.getTransferAmount().compareTo(BigDecimal.ZERO)) {
+            case -1:
+            case 0:
+                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Movement not processable");
+            case 1:
+                break;
+        }
+
+        Optional<Student> optionalStudent = studentRepository.findById(id);
+
+        if (optionalStudent.isPresent()) {
+            if (optionalStudent.get().getPrimaryOwner().getName().equals(name)) {
+                BigDecimal amountInAccount = optionalStudent.get().getBalance().getAmount();
+                BigDecimal amountAfterMovement = amountInAccount.subtract(movementDTO.getTransferAmount());
+
+                switch (amountAfterMovement.compareTo(BigDecimal.ZERO)) {
+                    case -1:
+                        throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "You do not have enough founds");
+                    case 0:
+                    case 1:
+                        break;
+                }
+
+                Movement movement = new Movement();
+                movement.setTransferAmount(movementDTO.getTransferAmount());
+                movement.setBalanceBefore(amountInAccount);
+                movement.setBalanceAfter(amountAfterMovement);
+                movement.setMovementType(MovementType.DECREASED);
+                movement.setOrderDate(LocalDate.now());
+                movement.setTimeExecution(LocalDateTime.now());
+                movement.setModificationDate(LocalDate.of(1, 1, 1));
+                movement.setAccount(optionalStudent.get());
+                movementRepository.save(movement);
+
+                optionalStudent.get().setBalance(new Money(amountAfterMovement));
+                studentRepository.save(optionalStudent.get());
+
+                return fillOutputMovementInformation(movement);
+            } else {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access not permitted");
+            }
+        } else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Resource not found");
+        }
+    }
+
     private boolean validInputDTO(CheckingDTO checkingDTO) {
 
         if ((checkingDTO.getName().equals("")) || (checkingDTO.getDateOfBirth() == null) || (checkingDTO.getDirection().equals(""))
@@ -186,7 +240,7 @@ public class StudentServiceImpl implements StudentService {
         address.setCountry(country);
         address.setMailingAddress(mailingAddress);
         address.setCreationDate(LocalDate.now());
-        address.setModificationDate(LocalDate.of(1,1,1));
+        address.setModificationDate(LocalDate.of(1, 1, 1));
 
         return address;
     }
@@ -216,7 +270,7 @@ public class StudentServiceImpl implements StudentService {
         secondaryOwner.setName(checkingDTO.getNameTwo());
         secondaryOwner.setDateOfBirth(checkingDTO.getDateOfBirthTwo());
         secondaryOwner.setCreationDate(LocalDate.now());
-        secondaryOwner.setModificationDate(LocalDate.of(1,1,1));
+        secondaryOwner.setModificationDate(LocalDate.of(1, 1, 1));
 
         return secondaryOwner;
     }
@@ -228,7 +282,7 @@ public class StudentServiceImpl implements StudentService {
         primaryOwner.setName(checkingDTO.getName());
         primaryOwner.setDateOfBirth(checkingDTO.getDateOfBirth());
         primaryOwner.setCreationDate(LocalDate.now());
-        primaryOwner.setModificationDate(LocalDate.of(1,1,1));
+        primaryOwner.setModificationDate(LocalDate.of(1, 1, 1));
 
         return primaryOwner;
     }
@@ -242,7 +296,7 @@ public class StudentServiceImpl implements StudentService {
         movement.setMovementType(MovementType.CREATED);
         movement.setOrderDate(LocalDate.now());
         movement.setTimeExecution(LocalDateTime.now());
-        movement.setModificationDate(LocalDate.of(1,1,1));
+        movement.setModificationDate(LocalDate.of(1, 1, 1));
 
         return movement;
     }
@@ -292,5 +346,22 @@ public class StudentServiceImpl implements StudentService {
             holderRole.setUser(user);
             roleRepository.save(holderRole);
         }
+    }
+
+    private MovementDTO fillOutputMovementInformation(Movement movement) {
+
+        MovementDTO returnDTO = new MovementDTO();
+
+        returnDTO.setId(movement.getId());
+        returnDTO.setTransferAmount(movement.getTransferAmount());
+        returnDTO.setBalanceBefore(movement.getBalanceBefore());
+        returnDTO.setBalanceAfter(movement.getBalanceAfter());
+        returnDTO.setMovementType(movement.getMovementType());
+        returnDTO.setOrderDate(movement.getOrderDate());
+        returnDTO.setTimeExecution(movement.getTimeExecution());
+        returnDTO.setModificationDate(movement.getModificationDate());
+
+
+        return returnDTO;
     }
 }

@@ -1,12 +1,14 @@
 package com.ironhack.midtermproject.model;
 
 import com.ironhack.midtermproject.enums.AccountStatus;
+import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 
 @Entity
+@DynamicUpdate
 public class Student extends Account {
 
     @Enumerated(EnumType.STRING)
