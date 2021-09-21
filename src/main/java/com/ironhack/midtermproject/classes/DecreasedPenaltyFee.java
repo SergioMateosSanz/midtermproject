@@ -2,23 +2,24 @@ package com.ironhack.midtermproject.classes;
 
 import com.ironhack.midtermproject.model.Checking;
 import com.ironhack.midtermproject.model.Saving;
+import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 
+@Service
 public class DecreasedPenaltyFee {
 
-    private static final BigDecimal PENALTY_FEE = BigDecimal.valueOf(40);
 
-    public static void updateAmountSaving(Saving saving) {
+    public void updateAmountSaving(Saving saving, BigDecimal penaltyFee) {
 
         BigDecimal result = new BigDecimal(String.valueOf(saving.getBalance().getAmount()));
-        result = result.subtract(PENALTY_FEE);
+        result = result.subtract(penaltyFee);
 
         Money money = new Money(result);
         saving.setBalance(money);
     }
 
-    public static boolean calculatePenaltyFeeSavingAccounts(Saving saving, BigDecimal amount) {
+    public boolean isPenaltyFeeSavingAccounts(Saving saving, BigDecimal amount) {
 
         boolean penalty = false;
 
@@ -37,16 +38,16 @@ public class DecreasedPenaltyFee {
         return penalty;
     }
 
-    public static void updateAmountChecking(Checking checking) {
+    public void updateAmountChecking(Checking checking, BigDecimal penaltyFee) {
 
         BigDecimal result = new BigDecimal(String.valueOf(checking.getBalance().getAmount()));
-        result = result.subtract(PENALTY_FEE);
+        result = result.subtract(penaltyFee);
 
         Money money = new Money(result);
         checking.setBalance(money);
     }
 
-    public static boolean calculatePenaltyFeeCheckingAccounts(Checking checking, BigDecimal amount) {
+    public boolean isPenaltyFeeCheckingAccounts(Checking checking, BigDecimal amount) {
 
         boolean penalty = false;
 
