@@ -9,17 +9,7 @@ import java.math.BigDecimal;
 @Service
 public class DecreasedPenaltyFee {
 
-
-    public void updateAmountSaving(Saving saving, BigDecimal penaltyFee) {
-
-        BigDecimal result = new BigDecimal(String.valueOf(saving.getBalance().getAmount()));
-        result = result.subtract(penaltyFee);
-
-        Money money = new Money(result);
-        saving.setBalance(money);
-    }
-
-    public boolean isPenaltyFeeSavingAccounts(Saving saving, BigDecimal amount) {
+        public boolean isPenaltyFeeSavingAccounts(Saving saving, BigDecimal amount) {
 
         boolean penalty = false;
 
@@ -36,15 +26,6 @@ public class DecreasedPenaltyFee {
                 break;
         }
         return penalty;
-    }
-
-    public void updateAmountChecking(Checking checking, BigDecimal penaltyFee) {
-
-        BigDecimal result = new BigDecimal(String.valueOf(checking.getBalance().getAmount()));
-        result = result.subtract(penaltyFee);
-
-        Money money = new Money(result);
-        checking.setBalance(money);
     }
 
     public boolean isPenaltyFeeCheckingAccounts(Checking checking, BigDecimal amount) {
@@ -64,5 +45,10 @@ public class DecreasedPenaltyFee {
                 break;
         }
         return penalty;
+    }
+
+    public BigDecimal calculateBalanceAmountToSet(BigDecimal actualAmount, BigDecimal penaltyFee) {
+
+        return actualAmount.subtract(penaltyFee);
     }
 }

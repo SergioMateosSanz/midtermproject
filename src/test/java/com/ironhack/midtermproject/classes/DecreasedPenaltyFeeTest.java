@@ -38,19 +38,9 @@ class DecreasedPenaltyFeeTest {
         checking.setStatus(AccountStatus.ACTIVE);
     }
 
-    @Test
-    void updateAmountSaving_UpdateAmount_SavingAccount() {
-
-        decreasedPenaltyFee.updateAmountSaving(saving, saving.getPenaltyFee());
-        assertEquals(BigDecimal.valueOf(960.00).setScale(2, RoundingMode.HALF_EVEN), saving.getBalance().getAmount());
-        decreasedPenaltyFee.updateAmountSaving(saving, saving.getPenaltyFee());
-        assertEquals(BigDecimal.valueOf(920.00).setScale(2, RoundingMode.HALF_EVEN), saving.getBalance().getAmount());
-        decreasedPenaltyFee.updateAmountSaving(saving, saving.getPenaltyFee());
-        assertEquals(BigDecimal.valueOf(880.00).setScale(2, RoundingMode.HALF_EVEN), saving.getBalance().getAmount());
-    }
 
     @Test
-    void calculatePenaltyFeeSavingAccounts_ReturnFalse_NotUnderMinimumBalance() {
+    void isPenaltyFeeSavingAccounts_ReturnFalse_NotUnderMinimumBalance() {
 
         assertFalse(decreasedPenaltyFee.isPenaltyFeeSavingAccounts(saving, BigDecimal.valueOf(1)));
         assertFalse(decreasedPenaltyFee.isPenaltyFeeSavingAccounts(saving, BigDecimal.valueOf(10)));
@@ -58,28 +48,17 @@ class DecreasedPenaltyFeeTest {
         assertFalse(decreasedPenaltyFee.isPenaltyFeeSavingAccounts(saving, BigDecimal.valueOf(600)));
     }
 
-
     @Test
-    void calculatePenaltyFeeSavingAccounts_ReturnTrue_UnderMinimumBalance() {
+    void isPenaltyFeeSavingAccounts_ReturnTrue_UnderMinimumBalance() {
 
         assertTrue(decreasedPenaltyFee.isPenaltyFeeSavingAccounts(saving, BigDecimal.valueOf(901)));
         assertTrue(decreasedPenaltyFee.isPenaltyFeeSavingAccounts(saving, BigDecimal.valueOf(910)));
         assertTrue(decreasedPenaltyFee.isPenaltyFeeSavingAccounts(saving, BigDecimal.valueOf(999)));
     }
 
-    @Test
-    void updateAmountChecking_UpdateAmount_CheckingAccount() {
-
-        decreasedPenaltyFee.updateAmountChecking(checking, checking.getPenaltyFee());
-        assertEquals(BigDecimal.valueOf(960.00).setScale(2, RoundingMode.HALF_EVEN), checking.getBalance().getAmount());
-        decreasedPenaltyFee.updateAmountChecking(checking, checking.getPenaltyFee());
-        assertEquals(BigDecimal.valueOf(920.00).setScale(2, RoundingMode.HALF_EVEN), checking.getBalance().getAmount());
-        decreasedPenaltyFee.updateAmountChecking(checking, checking.getPenaltyFee());
-        assertEquals(BigDecimal.valueOf(880.00).setScale(2, RoundingMode.HALF_EVEN), checking.getBalance().getAmount());
-    }
 
     @Test
-    void calculatePenaltyFeeCheckingAccounts_ReturnFalse_NotUnderMinimumBalance() {
+    void isPenaltyFeeCheckingAccounts_ReturnFalse_NotUnderMinimumBalance() {
 
         assertFalse(decreasedPenaltyFee.isPenaltyFeeCheckingAccounts(checking, BigDecimal.valueOf(1)));
         assertFalse(decreasedPenaltyFee.isPenaltyFeeCheckingAccounts(checking, BigDecimal.valueOf(10)));
@@ -89,10 +68,43 @@ class DecreasedPenaltyFeeTest {
 
 
     @Test
-    void calculatePenaltyFeeCheckingAccounts_ReturnTrue_UnderMinimumBalance() {
+    void isPenaltyFeeCheckingAccounts_ReturnTrue_UnderMinimumBalance() {
 
         assertTrue(decreasedPenaltyFee.isPenaltyFeeCheckingAccounts(checking, BigDecimal.valueOf(751)));
         assertTrue(decreasedPenaltyFee.isPenaltyFeeCheckingAccounts(checking, BigDecimal.valueOf(910)));
         assertTrue(decreasedPenaltyFee.isPenaltyFeeCheckingAccounts(checking, BigDecimal.valueOf(999)));
+    }
+
+    @Test
+    void calculateBalanceAmountToSet_CorrectCalculation_ActualAmountPositive() {
+
+        BigDecimal result = BigDecimal.valueOf(-11);
+        assertEquals(result, decreasedPenaltyFee.calculateBalanceAmountToSet(BigDecimal.valueOf(1), BigDecimal.valueOf(12)));
+
+        result = BigDecimal.valueOf(100);
+        assertEquals(result, decreasedPenaltyFee.calculateBalanceAmountToSet(BigDecimal.valueOf(112), BigDecimal.valueOf(12)));
+
+        result = BigDecimal.valueOf(443.87);
+        assertEquals(result, decreasedPenaltyFee.calculateBalanceAmountToSet(BigDecimal.valueOf(455.87), BigDecimal.valueOf(12)));
+    }
+
+    @Test
+    void calculateBalanceAmountToSet_CorrectCalculation_ActualAmountZero() {
+
+        BigDecimal result = BigDecimal.valueOf(-12);
+        assertEquals(result, decreasedPenaltyFee.calculateBalanceAmountToSet(BigDecimal.ZERO, BigDecimal.valueOf(12)));
+
+        result = BigDecimal.valueOf(-100);
+        assertEquals(result, decreasedPenaltyFee.calculateBalanceAmountToSet(BigDecimal.ZERO, BigDecimal.valueOf(100)));
+    }
+
+    @Test
+    void calculateBalanceAmountToSet_CorrectCalculation_ActualAmountNegative() {
+
+        BigDecimal result = BigDecimal.valueOf(-13);
+        assertEquals(result, decreasedPenaltyFee.calculateBalanceAmountToSet(BigDecimal.valueOf(-1), BigDecimal.valueOf(12)));
+
+        result = BigDecimal.valueOf(-45.03);
+        assertEquals(result, decreasedPenaltyFee.calculateBalanceAmountToSet(BigDecimal.valueOf(-33.03), BigDecimal.valueOf(12)));
     }
 }
