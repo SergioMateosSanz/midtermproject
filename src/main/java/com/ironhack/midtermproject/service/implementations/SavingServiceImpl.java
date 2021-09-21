@@ -1,7 +1,9 @@
 package com.ironhack.midtermproject.service.implementations;
 
 import com.ironhack.midtermproject.classes.AddedInterestRate;
+import com.ironhack.midtermproject.classes.DecreasedPenaltyFee;
 import com.ironhack.midtermproject.classes.Money;
+import com.ironhack.midtermproject.classes.MovementDTO;
 import com.ironhack.midtermproject.controller.dto.SavingDTO;
 import com.ironhack.midtermproject.enums.AccountStatus;
 import com.ironhack.midtermproject.enums.MovementType;
@@ -35,6 +37,9 @@ public class SavingServiceImpl implements SavingService {
 
     @Autowired
     MovementRepository movementRepository;
+
+    @Autowired
+    DecreasedPenaltyFee decreasedPenaltyFee;
 
     @Autowired
     UserRepository userRepository;
@@ -199,6 +204,80 @@ public class SavingServiceImpl implements SavingService {
         }
     }
 
+    @Override
+    public MovementDTO createMovement(int id, MovementDTO movementDTO, String name) {
+
+        if (movementDTO.getTransferAmount() == null) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Resource not processable");
+        }
+
+        switch (movementDTO.getTransferAmount().compareTo(BigDecimal.ZERO)) {
+            case -1:
+            case 0:
+                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Movement not processable");
+            case 1:
+                break;
+        }
+
+        Optional<Saving> optionalSaving = savingRepository.findById(id);
+
+        if (optionalSaving.isPresent()) {
+            if (optionalSaving.get().getPrimaryOwner().getName().equals(name)) {
+                BigDecimal amountInAccount = optionalSaving.get().getBalance().getAmount();
+                BigDecimal amountAfterMovement = amountInAccount.subtract(movementDTO.getTransferAmount());
+
+                switch (amountAfterMovement.compareTo(BigDecimal.ZERO)) {
+                    case -1:
+                        throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "You do not have enough founds");
+                    case 0:
+                    case 1:
+                        break;
+                }
+
+                Movement movement = new Movement();
+                movement.setTransferAmount(movementDTO.getTransferAmount().negate());
+                movement.setBalanceBefore(amountInAccount);
+                movement.setBalanceAfter(amountAfterMovement);
+                movement.setMovementType(MovementType.DECREASED);
+                movement.setOrderDate(LocalDate.now());
+                movement.setTimeExecution(LocalDateTime.now());
+                movement.setModificationDate(LocalDate.of(1, 1, 1));
+                movement.setAccount(optionalSaving.get());
+                movementRepository.save(movement);
+
+                optionalSaving.get().setBalance(new Money(amountAfterMovement));
+                savingRepository.save(optionalSaving.get());
+
+                if (decreasedPenaltyFee.isPenaltyFeeSavingAccounts(optionalSaving.get(), movementDTO.getTransferAmount())) {
+                    optionalSaving.get().setBalance(new Money(decreasedPenaltyFee.calculateBalanceAmountToSet
+                            (amountInAccount, optionalSaving.get().getPenaltyFee())));
+                    Movement movementPenalty = new Movement();
+                    movementPenalty.setTransferAmount(optionalSaving.get().getPenaltyFee().negate());
+                    movementPenalty.setBalanceBefore(amountAfterMovement);
+                    movementPenalty.setBalanceAfter(amountAfterMovement.subtract(optionalSaving.get().getPenaltyFee()));
+                    movementPenalty.setMovementType(MovementType.PENALTY_FEE);
+                    movementPenalty.setOrderDate(LocalDate.now());
+                    movementPenalty.setTimeExecution(LocalDateTime.now());
+                    movementPenalty.setModificationDate(LocalDate.of(1, 1, 1));
+                    movementPenalty.setAccount(optionalSaving.get());
+                    movementRepository.save(movementPenalty);
+
+                    optionalSaving.get().setBalance(new Money(amountAfterMovement.subtract(optionalSaving.get().getPenaltyFee())));
+                } else {
+                    optionalSaving.get().setBalance(new Money(amountAfterMovement));
+                }
+
+                savingRepository.save(optionalSaving.get());
+
+                return fillOutputMovementInformation(movement);
+            } else {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access not permitted");
+            }
+        } else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Resource not found");
+        }
+    }
+
     private boolean validInputDTO(SavingDTO savingDTO) {
 
         if ((savingDTO.getName().equals("")) || (savingDTO.getDateOfBirth() == null) || (savingDTO.getDirection().equals(""))
@@ -334,5 +413,21 @@ public class SavingServiceImpl implements SavingService {
             holderRole.setUser(user);
             roleRepository.save(holderRole);
         }
+    }
+
+    private MovementDTO fillOutputMovementInformation(Movement movement) {
+
+        MovementDTO returnDTO = new MovementDTO();
+
+        returnDTO.setId(movement.getId());
+        returnDTO.setTransferAmount(movement.getTransferAmount().negate());
+        returnDTO.setBalanceBefore(movement.getBalanceBefore());
+        returnDTO.setBalanceAfter(movement.getBalanceAfter());
+        returnDTO.setMovementType(movement.getMovementType());
+        returnDTO.setOrderDate(movement.getOrderDate());
+        returnDTO.setTimeExecution(movement.getTimeExecution());
+        returnDTO.setModificationDate(movement.getModificationDate());
+
+        return returnDTO;
     }
 }

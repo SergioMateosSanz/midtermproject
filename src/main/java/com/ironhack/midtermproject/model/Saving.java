@@ -1,6 +1,7 @@
 package com.ironhack.midtermproject.model;
 
 import com.ironhack.midtermproject.enums.AccountStatus;
+import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -8,6 +9,7 @@ import javax.persistence.Enumerated;
 import java.math.BigDecimal;
 
 @Entity
+@DynamicUpdate
 public class Saving extends Account {
 
     private static final BigDecimal MINIMUM_INTEREST_RATE = BigDecimal.valueOf(0.0025);

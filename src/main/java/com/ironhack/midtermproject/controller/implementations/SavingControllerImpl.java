@@ -1,5 +1,6 @@
 package com.ironhack.midtermproject.controller.implementations;
 
+import com.ironhack.midtermproject.classes.MovementDTO;
 import com.ironhack.midtermproject.controller.dto.SavingDTO;
 import com.ironhack.midtermproject.controller.interfaces.SavingController;
 import com.ironhack.midtermproject.security.CustomUserDetails;
@@ -39,5 +40,14 @@ public class SavingControllerImpl implements SavingController {
     public SavingDTO getSaving(@PathVariable(name = "id") int id, @AuthenticationPrincipal CustomUserDetails userDetails) {
 
         return savingService.getSaving(id, userDetails.getUsername());
+    }
+
+    @Override
+    @PostMapping("/accounts/savings/{id}/movements")
+    @ResponseStatus(HttpStatus.CREATED)
+    public MovementDTO createMovement(@PathVariable(name = "id") int id, @RequestBody MovementDTO movementDTO,
+                                      @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        return savingService.createMovement(id, movementDTO, userDetails.getUsername());
     }
 }
