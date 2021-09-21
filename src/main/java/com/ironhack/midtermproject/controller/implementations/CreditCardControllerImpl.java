@@ -1,5 +1,6 @@
 package com.ironhack.midtermproject.controller.implementations;
 
+import com.ironhack.midtermproject.classes.MovementDTO;
 import com.ironhack.midtermproject.controller.dto.CreditCardDTO;
 import com.ironhack.midtermproject.controller.interfaces.CreditCardController;
 import com.ironhack.midtermproject.security.CustomUserDetails;
@@ -39,5 +40,14 @@ public class CreditCardControllerImpl implements CreditCardController {
     public CreditCardDTO getCreditCard(@PathVariable(name = "id") int id, @AuthenticationPrincipal CustomUserDetails userDetails) {
 
         return creditCardService.getCreditCard(id, userDetails.getUsername());
+    }
+
+    @Override
+    @PostMapping("/accounts/credits/{id}/movements")
+    @ResponseStatus(HttpStatus.CREATED)
+    public MovementDTO createMovement(@PathVariable(name = "id") int id, @RequestBody MovementDTO movementDTO,
+                                      @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        return creditCardService.createMovement(id, movementDTO, userDetails.getUsername());
     }
 }

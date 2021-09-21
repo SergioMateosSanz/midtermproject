@@ -2,6 +2,7 @@ package com.ironhack.midtermproject.service.implementations;
 
 import com.ironhack.midtermproject.classes.AddedInterestRate;
 import com.ironhack.midtermproject.classes.Money;
+import com.ironhack.midtermproject.classes.MovementDTO;
 import com.ironhack.midtermproject.controller.dto.CreditCardDTO;
 import com.ironhack.midtermproject.controller.dto.SavingDTO;
 import com.ironhack.midtermproject.enums.MovementType;
@@ -189,6 +190,59 @@ public class CreditCardServiceImpl implements CreditCardService {
         }
     }
 
+    @Override
+    public MovementDTO createMovement(int id, MovementDTO movementDTO, String name) {
+
+        if (movementDTO.getTransferAmount() == null) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Resource not processable");
+        }
+
+        switch (movementDTO.getTransferAmount().compareTo(BigDecimal.ZERO)) {
+            case -1:
+            case 0:
+                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Movement not processable");
+            case 1:
+                break;
+        }
+
+        Optional<CreditCard> optionalCreditCard = creditCardRepository.findById(id);
+
+        if (optionalCreditCard.isPresent()) {
+            if (optionalCreditCard.get().getPrimaryOwner().getName().equals(name)) {
+                BigDecimal amountInAccount = optionalCreditCard.get().getBalance().getAmount();
+                BigDecimal amountAfterMovement = amountInAccount.subtract(movementDTO.getTransferAmount());
+
+                switch (amountAfterMovement.compareTo(BigDecimal.ZERO)) {
+                    case -1:
+                        throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "You do not have enough founds");
+                    case 0:
+                    case 1:
+                        break;
+                }
+
+                Movement movement = new Movement();
+                movement.setTransferAmount(movementDTO.getTransferAmount());
+                movement.setBalanceBefore(amountInAccount);
+                movement.setBalanceAfter(amountAfterMovement);
+                movement.setMovementType(MovementType.DECREASED);
+                movement.setOrderDate(LocalDate.now());
+                movement.setTimeExecution(LocalDateTime.now());
+                movement.setModificationDate(LocalDate.of(1, 1, 1));
+                movement.setAccount(optionalCreditCard.get());
+                movementRepository.save(movement);
+
+                optionalCreditCard.get().setBalance(new Money(amountAfterMovement));
+                creditCardRepository.save(optionalCreditCard.get());
+
+                return fillOutputMovementInformation(movement);
+            } else {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access not permitted");
+            }
+        } else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Resource not found");
+        }
+    }
+
     private boolean validInputDTO(CreditCardDTO creditCardDTO) {
 
         if ((creditCardDTO.getName().equals("")) || (creditCardDTO.getDateOfBirth() == null) || (creditCardDTO.getDirection().equals(""))
@@ -306,6 +360,23 @@ public class CreditCardServiceImpl implements CreditCardService {
             returnDTO.setCountryTwo(creditCard.getOtherOwner().getAddress().getCountry());
             returnDTO.setMailingAddressTwo(creditCard.getOtherOwner().getAddress().getMailingAddress());
         }
+
+        return returnDTO;
+    }
+
+    private MovementDTO fillOutputMovementInformation(Movement movement) {
+
+        MovementDTO returnDTO = new MovementDTO();
+
+        returnDTO.setId(movement.getId());
+        returnDTO.setTransferAmount(movement.getTransferAmount());
+        returnDTO.setBalanceBefore(movement.getBalanceBefore());
+        returnDTO.setBalanceAfter(movement.getBalanceAfter());
+        returnDTO.setMovementType(movement.getMovementType());
+        returnDTO.setOrderDate(movement.getOrderDate());
+        returnDTO.setTimeExecution(movement.getTimeExecution());
+        returnDTO.setModificationDate(movement.getModificationDate());
+
 
         return returnDTO;
     }

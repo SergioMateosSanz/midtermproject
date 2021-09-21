@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.ironhack.midtermproject.classes.Money;
+import com.ironhack.midtermproject.classes.MovementDTO;
 import com.ironhack.midtermproject.controller.dto.CreditCardDTO;
 import com.ironhack.midtermproject.controller.dto.SavingDTO;
 import com.ironhack.midtermproject.enums.MovementType;
@@ -65,6 +66,7 @@ class CreditCardControllerImplTest {
     CreditCardDTO creditCardDTO;
     CreditCard creditCard;
     CreditCard creditCardTwo;
+    MovementDTO movementDTO;
 
     private MockMvc mockMvc;
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -163,6 +165,8 @@ class CreditCardControllerImplTest {
         holderRole = new Role("HOLDER");
         holderRole.setUser(userTwo);
         roleRepository.save(holderRole);
+
+        movementDTO = new MovementDTO();
     }
 
     @AfterEach
@@ -285,5 +289,93 @@ class CreditCardControllerImplTest {
                 .andReturn();
         assertTrue(mvcResult.getResponse().getContentAsString(StandardCharsets.UTF_8).contains(""+creditCard.getId()+""));
         assertTrue(mvcResult.getResponse().getContentAsString(StandardCharsets.UTF_8).contains("holder"));
+    }
+
+    @Test
+    void createMovement_UnprocessedEntity_NullTransferAmount() throws Exception {
+
+        movementDTO.setTransferAmount(null);
+        String body = objectMapper.writeValueAsString(movementDTO);
+        mockMvc.perform(post("/accounts/credits/"+creditCard.getId()+"/movements")
+                        .with(httpBasic("Andres Iniesta", "123456"))
+                        .content(body)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .characterEncoding("UTF-8")
+                )
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
+    void createMovement_UnprocessedEntity_TransferAmountZero() throws Exception {
+
+        movementDTO.setTransferAmount(BigDecimal.ZERO);
+        String body = objectMapper.writeValueAsString(movementDTO);
+        mockMvc.perform(post("/accounts/credits/"+creditCard.getId()+"/movements")
+                        .with(httpBasic("Andres Iniesta", "123456"))
+                        .content(body)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .characterEncoding("UTF-8")
+                )
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
+    void createMovement_NotFound_AccountNotExits() throws Exception {
+
+        movementDTO.setTransferAmount(BigDecimal.TEN);
+        String body = objectMapper.writeValueAsString(movementDTO);
+        mockMvc.perform(post("/accounts/credits/0/movements")
+                        .with(httpBasic("Andres Iniesta", "123456"))
+                        .content(body)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .characterEncoding("UTF-8")
+                )
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void createMovement_Forbidden_AccountOtherOwner() throws Exception {
+
+        movementDTO.setTransferAmount(BigDecimal.TEN);
+        String body = objectMapper.writeValueAsString(movementDTO);
+        mockMvc.perform(post("/accounts/credits/"+creditCard.getId()+"/movements")
+                        .with(httpBasic("Andrés Iniesta", "123456"))
+                        .content(body)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .characterEncoding("UTF-8")
+                )
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void createMovement_UnprocessedEntity_NotEnoughFounds() throws Exception {
+
+        movementDTO.setTransferAmount(BigDecimal.valueOf(100000000));
+        String body = objectMapper.writeValueAsString(movementDTO);
+        mockMvc.perform(post("/accounts/credits/"+creditCard.getId()+"/movements")
+                        .with(httpBasic("holder", "123456"))
+                        .content(body)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .characterEncoding("UTF-8")
+                )
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
+    void createMovement_Created_ValidationOk() throws Exception {
+
+        movementDTO.setTransferAmount(BigDecimal.valueOf(1));
+        String body = objectMapper.writeValueAsString(movementDTO);
+        MvcResult mvcResult = mockMvc.perform(post("/accounts/credits/"+creditCard.getId()+"/movements")
+                        .with(httpBasic("holder", "123456"))
+                        .content(body)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .characterEncoding("UTF-8")
+                )
+                .andExpect(status().isCreated())
+                .andReturn();
+        assertTrue(mvcResult.getResponse().getContentAsString(StandardCharsets.UTF_8).contains("1"));
+        assertEquals(creditCard.getBalance().getAmount().subtract(BigDecimal.valueOf(1)),
+                creditCardRepository.findById(creditCard.getId()).get().getBalance().getAmount());
     }
 }
