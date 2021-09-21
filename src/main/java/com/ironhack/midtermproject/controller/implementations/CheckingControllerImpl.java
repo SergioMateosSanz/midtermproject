@@ -50,4 +50,12 @@ public class CheckingControllerImpl implements CheckingController {
 
         return chekingService.createMovement(id, movementDTO, userDetails.getUsername());
     }
+
+    @Override
+    @GetMapping("/accounts/checkings/{id}/movements")
+    @ResponseStatus(HttpStatus.OK)
+    public List<MovementDTO> getMovements(@PathVariable(name = "id") int id, @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        return chekingService.getMovements(id, userDetails.getUsername());
+    }
 }

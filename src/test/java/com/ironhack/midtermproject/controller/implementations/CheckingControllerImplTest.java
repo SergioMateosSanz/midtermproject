@@ -481,4 +481,41 @@ class CheckingControllerImplTest {
         assertEquals(checkingTwo.getBalance().getAmount().subtract(BigDecimal.valueOf(1)),
                 checkingRepository.findById(checkingTwo.getId()).get().getBalance().getAmount());
     }
+
+    @Test
+    void getMovements_isForbidden_AccountExistsWithMovements() throws Exception {
+
+        mockMvc.perform(get("/accounts/checkings/"+checking.getId()+"/movements")
+                        .with(httpBasic("Andrés Iniesta", "123456"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .characterEncoding("UTF-8")
+                )
+                .andExpect(status().isForbidden())
+                .andReturn();
+    }
+
+    @Test
+    void getMovements_isNotFound_AccountExistsWithMovements() throws Exception {
+
+        mockMvc.perform(get("/accounts/checkings/0/movements")
+                        .with(httpBasic("Michael Douglas", "123456"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .characterEncoding("UTF-8")
+                )
+                .andExpect(status().isNotFound())
+                .andReturn();
+    }
+
+    @Test
+    void getMovements_isOk_AccountExistsWithMovements() throws Exception {
+
+        MvcResult mvcResult = mockMvc.perform(get("/accounts/checkings/"+checking.getId()+"/movements")
+                        .with(httpBasic("Michael Douglas", "123456"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .characterEncoding("UTF-8")
+                )
+                .andExpect(status().isOk())
+                .andReturn();
+        assertTrue(mvcResult.getResponse().getContentAsString(StandardCharsets.UTF_8).contains("CREATED"));
+    }
 }

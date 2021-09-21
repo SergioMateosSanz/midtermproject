@@ -12,4 +12,5 @@ public interface CheckingController {
     List<CheckingDTO> getAll(CustomUserDetails userDetails);
     CheckingDTO getChecking(int id, CustomUserDetails userDetails);
     MovementDTO createMovement(int id, MovementDTO movementDTO, CustomUserDetails userDetails);
+    List<MovementDTO> getMovements(int id, CustomUserDetails userDetails);
 }

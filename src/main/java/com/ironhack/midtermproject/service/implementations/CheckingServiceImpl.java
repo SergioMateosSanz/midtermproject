@@ -5,7 +5,6 @@ import com.ironhack.midtermproject.classes.DecreasedPenaltyFee;
 import com.ironhack.midtermproject.classes.Money;
 import com.ironhack.midtermproject.classes.MovementDTO;
 import com.ironhack.midtermproject.controller.dto.CheckingDTO;
-import com.ironhack.midtermproject.controller.dto.SavingDTO;
 import com.ironhack.midtermproject.enums.AccountStatus;
 import com.ironhack.midtermproject.enums.MovementType;
 import com.ironhack.midtermproject.model.*;
@@ -28,6 +27,9 @@ import java.util.Optional;
 
 @Service
 public class CheckingServiceImpl implements CheckingService {
+
+    @Autowired
+    AccountRepository accountRepository;
 
     @Autowired
     CheckingRepository checkingRepository;
@@ -213,6 +215,23 @@ public class CheckingServiceImpl implements CheckingService {
                 checkingRepository.save(optionalChecking.get());
 
                 return fillOutputMovementInformation(movement);
+            } else {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access not permitted");
+            }
+        } else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Resource not found");
+        }
+    }
+
+    @Override
+    public List<MovementDTO> getMovements(int id, String name) {
+
+        Optional<Checking> optionalChecking = checkingRepository.findById(id);
+
+        if (optionalChecking.isPresent()) {
+            if (optionalChecking.get().getPrimaryOwner().getName().equals(name)) {
+                List<Account> movementList = accountRepository.getByIdWithMovements(id);
+                return fillOutputAllMovements(movementList);
             } else {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access not permitted");
             }
@@ -451,5 +470,29 @@ public class CheckingServiceImpl implements CheckingService {
         returnDTO.setModificationDate(movement.getModificationDate());
 
         return returnDTO;
+    }
+
+    private List<MovementDTO> fillOutputAllMovements(List<Account> studentList){
+
+        List<MovementDTO> returnList = new ArrayList<>();
+        Movement movement;
+
+        for (int i = 0; i< studentList.size(); i++) {
+            MovementDTO movementDTO = new MovementDTO();
+            movement = studentList.get(i).getMovementList().get(i);
+
+            movementDTO.setId(movement.getId());
+            movementDTO.setTransferAmount(movement.getTransferAmount());
+            movementDTO.setBalanceBefore(movement.getBalanceBefore());
+            movementDTO.setBalanceAfter(movement.getBalanceAfter());
+            movementDTO.setMovementType(movement.getMovementType());
+            movementDTO.setOrderDate(movement.getOrderDate());
+            movementDTO.setTimeExecution(movement.getTimeExecution());
+            movementDTO.setModificationDate(movement.getModificationDate());
+
+            returnList.add(movementDTO);
+        }
+
+        return returnList;
     }
 }

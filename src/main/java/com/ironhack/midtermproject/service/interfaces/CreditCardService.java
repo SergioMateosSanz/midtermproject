@@ -2,7 +2,6 @@ package com.ironhack.midtermproject.service.interfaces;
 
 import com.ironhack.midtermproject.classes.MovementDTO;
 import com.ironhack.midtermproject.controller.dto.CreditCardDTO;
-import com.ironhack.midtermproject.security.CustomUserDetails;
 
 import java.util.List;
 

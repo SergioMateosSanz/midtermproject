@@ -11,4 +11,5 @@ public interface CheckingService {
     List<CheckingDTO> getAllByOwner(String name);
     CheckingDTO getChecking(int id, String name);
     MovementDTO createMovement(int id, MovementDTO movementDTO, String name);
+    List<MovementDTO> getMovements(int id, String name);
 }
