@@ -50,4 +50,12 @@ public class SavingControllerImpl implements SavingController {
 
         return savingService.createMovement(id, movementDTO, userDetails.getUsername());
     }
+
+    @Override
+    @GetMapping("/accounts/savings/{id}/movements")
+    @ResponseStatus(HttpStatus.OK)
+    public List<MovementDTO> getMovements(@PathVariable(name = "id") int id, @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        return savingService.getMovements(id, userDetails.getUsername());
+    }
 }

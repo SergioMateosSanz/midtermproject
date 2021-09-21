@@ -11,4 +11,5 @@ public interface SavingService {
     List<SavingDTO> getAllByOwner(String name);
     SavingDTO getSaving(int id, String name);
     MovementDTO createMovement(int id, MovementDTO movementDTO, String name);
+    List<MovementDTO> getMovements(int id, String name);
 }
