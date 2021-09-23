@@ -9,6 +9,7 @@ import com.ironhack.midtermproject.repository.UserRepository;
 import com.ironhack.midtermproject.service.interfaces.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -38,7 +39,8 @@ public class UserServiceImpl implements UserService {
 
         User userToAdd = new User();
         userToAdd.setUsername(thirdPartyDTOInput.getName());
-        userToAdd.setPassword(thirdPartyDTOInput.getSharedKey());
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        userToAdd.setPassword(passwordEncoder.encode(thirdPartyDTOInput.getSharedKey()));
         userRepository.save(userToAdd);
 
         Role role = new Role("THIRD PARTY");
