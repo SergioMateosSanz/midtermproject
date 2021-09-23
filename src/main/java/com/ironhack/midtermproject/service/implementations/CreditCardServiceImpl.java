@@ -2,7 +2,7 @@ package com.ironhack.midtermproject.service.implementations;
 
 import com.ironhack.midtermproject.classes.AddedInterestRate;
 import com.ironhack.midtermproject.classes.Money;
-import com.ironhack.midtermproject.classes.MovementDTO;
+import com.ironhack.midtermproject.controller.dto.MovementDTO;
 import com.ironhack.midtermproject.controller.dto.CreditCardDTO;
 import com.ironhack.midtermproject.enums.MovementType;
 import com.ironhack.midtermproject.model.*;

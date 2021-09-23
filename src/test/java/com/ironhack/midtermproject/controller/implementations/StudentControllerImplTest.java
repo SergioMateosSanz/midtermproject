@@ -2,7 +2,7 @@ package com.ironhack.midtermproject.controller.implementations;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ironhack.midtermproject.classes.Money;
-import com.ironhack.midtermproject.classes.MovementDTO;
+import com.ironhack.midtermproject.controller.dto.MovementDTO;
 import com.ironhack.midtermproject.enums.MovementType;
 import com.ironhack.midtermproject.model.*;
 import com.ironhack.midtermproject.repository.*;

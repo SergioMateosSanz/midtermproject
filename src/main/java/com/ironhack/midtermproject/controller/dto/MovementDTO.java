@@ -1,4 +1,4 @@
-package com.ironhack.midtermproject.classes;
+package com.ironhack.midtermproject.controller.dto;
 
 import com.ironhack.midtermproject.enums.MovementType;
 import java.math.BigDecimal;

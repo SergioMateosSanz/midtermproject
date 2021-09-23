@@ -1,6 +1,6 @@
 package com.ironhack.midtermproject.controller.interfaces;
 
-import com.ironhack.midtermproject.classes.MovementDTO;
+import com.ironhack.midtermproject.controller.dto.MovementDTO;
 import com.ironhack.midtermproject.controller.dto.SavingDTO;
 import com.ironhack.midtermproject.security.CustomUserDetails;
 

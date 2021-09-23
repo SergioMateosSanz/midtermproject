@@ -1,9 +1,8 @@
 package com.ironhack.midtermproject.service.implementations;
 
 import com.ironhack.midtermproject.classes.Money;
-import com.ironhack.midtermproject.classes.MovementDTO;
+import com.ironhack.midtermproject.controller.dto.MovementDTO;
 import com.ironhack.midtermproject.controller.dto.CheckingDTO;
-import com.ironhack.midtermproject.controller.dto.SavingDTO;
 import com.ironhack.midtermproject.enums.AccountStatus;
 import com.ironhack.midtermproject.enums.MovementType;
 import com.ironhack.midtermproject.model.*;

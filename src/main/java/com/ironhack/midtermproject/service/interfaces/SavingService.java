@@ -1,6 +1,6 @@
 package com.ironhack.midtermproject.service.interfaces;
 
-import com.ironhack.midtermproject.classes.MovementDTO;
+import com.ironhack.midtermproject.controller.dto.MovementDTO;
 import com.ironhack.midtermproject.controller.dto.SavingDTO;
 
 import java.util.List;
