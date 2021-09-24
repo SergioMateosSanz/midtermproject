@@ -1,8 +1,10 @@
 package com.ironhack.midtermproject.service.implementations;
 
 import com.ironhack.midtermproject.classes.DecreasedPenaltyFee;
+import com.ironhack.midtermproject.classes.FraudDetection;
 import com.ironhack.midtermproject.classes.Money;
 import com.ironhack.midtermproject.controller.dto.TransferMoneyDTO;
+import com.ironhack.midtermproject.enums.AccountStatus;
 import com.ironhack.midtermproject.enums.MovementType;
 import com.ironhack.midtermproject.model.*;
 import com.ironhack.midtermproject.repository.AccountRepository;
@@ -30,6 +32,9 @@ public class ThirdPartyServiceImpl implements ThirdPartyService {
     @Autowired
     DecreasedPenaltyFee decreasedPenaltyFee;
 
+    @Autowired
+    FraudDetection fraudDetection;
+
 
     @Override
     public TransferMoneyDTO sendMoney(TransferMoneyDTO transferMoneyDTO) {
@@ -42,6 +47,24 @@ public class ThirdPartyServiceImpl implements ThirdPartyService {
 
         if (!optionalAccount.isPresent()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found");
+        }
+        if (optionalAccount.get().getClass().equals(Saving.class)) {
+            Saving saving = (Saving) optionalAccount.get();
+            if (saving.getStatus().equals(AccountStatus.FROZEN)) {
+                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Account is frozen");
+            }
+        }
+        if (optionalAccount.get().getClass().equals(Checking.class)) {
+            Checking checking = (Checking) optionalAccount.get();
+            if (checking.getStatus().equals(AccountStatus.FROZEN)) {
+                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Account is frozen");
+            }
+        }
+        if (optionalAccount.get().getClass().equals(Student.class)) {
+            Student student = (Student) optionalAccount.get();
+            if (student.getStatus().equals(AccountStatus.FROZEN)) {
+                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Account is frozen");
+            }
         }
 
         Movement movement = new Movement();
@@ -59,6 +82,64 @@ public class ThirdPartyServiceImpl implements ThirdPartyService {
         accountRepository.save(optionalAccount.get());
 
         transferMoneyDTO.setMovementId(movement.getId());
+
+        if (optionalAccount.get().getClass().equals(Saving.class)) {
+            Saving saving = (Saving) optionalAccount.get();
+
+            if (fraudDetection.isFraudDetected(saving.getId())){
+                movement = new Movement();
+                movement.setTransferAmount(BigDecimal.ZERO);
+                movement.setBalanceBefore(BigDecimal.ZERO);
+                movement.setBalanceAfter(BigDecimal.ZERO);
+                movement.setMovementType(MovementType.FROZEN);
+                movement.setOrderDate(LocalDate.now());
+                movement.setTimeExecution(LocalDateTime.now());
+                movement.setModificationDate(LocalDate.of(1, 1, 1));
+                movement.setAccount(saving);
+                movementRepository.save(movement);
+
+                saving.setStatus(AccountStatus.FROZEN);
+                accountRepository.save(saving);
+            }
+        }
+        if (optionalAccount.get().getClass().equals(Checking.class)) {
+            Checking checking = (Checking) optionalAccount.get();
+
+            if (fraudDetection.isFraudDetected(checking.getId())){
+                movement = new Movement();
+                movement.setTransferAmount(BigDecimal.ZERO);
+                movement.setBalanceBefore(BigDecimal.ZERO);
+                movement.setBalanceAfter(BigDecimal.ZERO);
+                movement.setMovementType(MovementType.FROZEN);
+                movement.setOrderDate(LocalDate.now());
+                movement.setTimeExecution(LocalDateTime.now());
+                movement.setModificationDate(LocalDate.of(1, 1, 1));
+                movement.setAccount(checking);
+                movementRepository.save(movement);
+
+                checking.setStatus(AccountStatus.FROZEN);
+                accountRepository.save(checking);
+            }
+        }
+        if (optionalAccount.get().getClass().equals(Student.class)) {
+            Student student = (Student) optionalAccount.get();
+
+            if (fraudDetection.isFraudDetected(student.getId())){
+                movement = new Movement();
+                movement.setTransferAmount(BigDecimal.ZERO);
+                movement.setBalanceBefore(BigDecimal.ZERO);
+                movement.setBalanceAfter(BigDecimal.ZERO);
+                movement.setMovementType(MovementType.FROZEN);
+                movement.setOrderDate(LocalDate.now());
+                movement.setTimeExecution(LocalDateTime.now());
+                movement.setModificationDate(LocalDate.of(1, 1, 1));
+                movement.setAccount(student);
+                movementRepository.save(movement);
+
+                student.setStatus(AccountStatus.FROZEN);
+                accountRepository.save(student);
+            }
+        }
 
         return transferMoneyDTO;
     }
@@ -79,11 +160,16 @@ public class ThirdPartyServiceImpl implements ThirdPartyService {
         Movement movement = new Movement();
 
         if (optionalAccount.get().getClass().equals(Saving.class)) {
-            if (decreasedPenaltyFee.isPenaltyFeeSavingAccounts((Saving) optionalAccount.get(), transferMoneyDTO.getAmount())) {
+            Saving saving = (Saving) optionalAccount.get();
+            if (saving.getStatus().equals(AccountStatus.FROZEN)) {
+                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Account is frozen");
+            }
+
+            if (decreasedPenaltyFee.isPenaltyFeeSavingAccounts(saving, transferMoneyDTO.getAmount())) {
                 movement = new Movement();
                 movement.setTransferAmount(transferMoneyDTO.getAmount().negate());
-                movement.setBalanceBefore(optionalAccount.get().getBalance().getAmount());
-                movement.setBalanceAfter(optionalAccount.get().getBalance().getAmount().subtract(transferMoneyDTO.getAmount()));
+                movement.setBalanceBefore(saving.getBalance().getAmount());
+                movement.setBalanceAfter(saving.getBalance().getAmount().subtract(transferMoneyDTO.getAmount()));
                 movement.setMovementType(MovementType.DECREASED);
                 movement.setOrderDate(LocalDate.now());
                 movement.setTimeExecution(LocalDateTime.now());
@@ -91,109 +177,166 @@ public class ThirdPartyServiceImpl implements ThirdPartyService {
                 movement.setAccount(optionalAccount.get());
                 movementRepository.save(movement);
 
-                optionalAccount.get().setBalance(new Money(optionalAccount.get().getBalance().getAmount().subtract(transferMoneyDTO.getAmount())));
-                accountRepository.save(optionalAccount.get());
+                optionalAccount.get().setBalance(new Money(saving.getBalance().getAmount().subtract(transferMoneyDTO.getAmount())));
+                accountRepository.save(saving);
 
-                BigDecimal amountInAccount = optionalAccount.get().getBalance().getAmount();
-                BigDecimal amountAfterMovement = amountInAccount.subtract(optionalAccount.get().getPenaltyFee());
+                BigDecimal amountInAccount = saving.getBalance().getAmount();
+                BigDecimal amountAfterMovement = amountInAccount.subtract(saving.getPenaltyFee());
 
-                optionalAccount.get().setBalance(new Money(decreasedPenaltyFee.calculateBalanceAmountToSet
-                        (amountInAccount, optionalAccount.get().getPenaltyFee())));
+                saving.setBalance(new Money(decreasedPenaltyFee.calculateBalanceAmountToSet
+                        (amountInAccount, saving.getPenaltyFee())));
                 Movement movementPenalty = new Movement();
-                movementPenalty.setTransferAmount(optionalAccount.get().getPenaltyFee().negate());
+                movementPenalty.setTransferAmount(saving.getPenaltyFee().negate());
                 movementPenalty.setBalanceBefore(amountInAccount);
                 movementPenalty.setBalanceAfter(amountAfterMovement);
                 movementPenalty.setMovementType(MovementType.PENALTY_FEE);
                 movementPenalty.setOrderDate(LocalDate.now());
                 movementPenalty.setTimeExecution(LocalDateTime.now());
                 movementPenalty.setModificationDate(LocalDate.of(1, 1, 1));
-                movementPenalty.setAccount(optionalAccount.get());
+                movementPenalty.setAccount(saving);
                 movementRepository.save(movementPenalty);
 
                 optionalAccount.get().setBalance(new Money(amountAfterMovement));
-                accountRepository.save(optionalAccount.get());
+                accountRepository.save(saving);
             } else {
                 movement = new Movement();
                 movement.setTransferAmount(transferMoneyDTO.getAmount().negate());
-                movement.setBalanceBefore(optionalAccount.get().getBalance().getAmount());
-                movement.setBalanceAfter(optionalAccount.get().getBalance().getAmount().subtract(transferMoneyDTO.getAmount()));
+                movement.setBalanceBefore(saving.getBalance().getAmount());
+                movement.setBalanceAfter(saving.getBalance().getAmount().subtract(transferMoneyDTO.getAmount()));
                 movement.setMovementType(MovementType.DECREASED);
                 movement.setOrderDate(LocalDate.now());
                 movement.setTimeExecution(LocalDateTime.now());
                 movement.setModificationDate(LocalDate.of(1, 1, 1));
-                movement.setAccount(optionalAccount.get());
+                movement.setAccount(saving);
                 movementRepository.save(movement);
 
-                optionalAccount.get().setBalance(new Money(optionalAccount.get().getBalance().getAmount().subtract(transferMoneyDTO.getAmount())));
+                optionalAccount.get().setBalance(new Money(saving.getBalance().getAmount().subtract(transferMoneyDTO.getAmount())));
                 accountRepository.save(optionalAccount.get());
+            }
+            if (fraudDetection.isFraudDetected(saving.getId())){
+                movement = new Movement();
+                movement.setTransferAmount(BigDecimal.ZERO);
+                movement.setBalanceBefore(BigDecimal.ZERO);
+                movement.setBalanceAfter(BigDecimal.ZERO);
+                movement.setMovementType(MovementType.FROZEN);
+                movement.setOrderDate(LocalDate.now());
+                movement.setTimeExecution(LocalDateTime.now());
+                movement.setModificationDate(LocalDate.of(1, 1, 1));
+                movement.setAccount(saving);
+                movementRepository.save(movement);
+
+                saving.setStatus(AccountStatus.FROZEN);
+                accountRepository.save(saving);
             }
         }
 
         if (optionalAccount.get().getClass().equals(Checking.class)) {
-            if (decreasedPenaltyFee.isPenaltyFeeCheckingAccounts((Checking) optionalAccount.get(), transferMoneyDTO.getAmount())) {
+            Checking checking = (Checking) optionalAccount.get();
+            if (checking.getStatus().equals(AccountStatus.FROZEN)) {
+                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Account is frozen");
+            }
+
+            if (decreasedPenaltyFee.isPenaltyFeeCheckingAccounts(checking, transferMoneyDTO.getAmount())) {
                 movement = new Movement();
                 movement.setTransferAmount(transferMoneyDTO.getAmount().negate());
-                movement.setBalanceBefore(optionalAccount.get().getBalance().getAmount());
-                movement.setBalanceAfter(optionalAccount.get().getBalance().getAmount().subtract(transferMoneyDTO.getAmount()));
+                movement.setBalanceBefore(checking.getBalance().getAmount());
+                movement.setBalanceAfter(checking.getBalance().getAmount().subtract(transferMoneyDTO.getAmount()));
                 movement.setMovementType(MovementType.DECREASED);
                 movement.setOrderDate(LocalDate.now());
                 movement.setTimeExecution(LocalDateTime.now());
                 movement.setModificationDate(LocalDate.of(1, 1, 1));
-                movement.setAccount(optionalAccount.get());
+                movement.setAccount(checking);
                 movementRepository.save(movement);
 
-                optionalAccount.get().setBalance(new Money(optionalAccount.get().getBalance().getAmount().subtract(transferMoneyDTO.getAmount())));
-                accountRepository.save(optionalAccount.get());
+                checking.setBalance(new Money(checking.getBalance().getAmount().subtract(transferMoneyDTO.getAmount())));
+                accountRepository.save(checking);
 
-                BigDecimal amountInAccount = optionalAccount.get().getBalance().getAmount();
-                BigDecimal amountAfterMovement = amountInAccount.subtract(optionalAccount.get().getPenaltyFee());
+                BigDecimal amountInAccount = checking.getBalance().getAmount();
+                BigDecimal amountAfterMovement = amountInAccount.subtract(checking.getPenaltyFee());
 
                 optionalAccount.get().setBalance(new Money(decreasedPenaltyFee.calculateBalanceAmountToSet
-                        (amountInAccount, optionalAccount.get().getPenaltyFee())));
+                        (amountInAccount, checking.getPenaltyFee())));
                 Movement movementPenalty = new Movement();
-                movementPenalty.setTransferAmount(optionalAccount.get().getPenaltyFee().negate());
+                movementPenalty.setTransferAmount(checking.getPenaltyFee().negate());
                 movementPenalty.setBalanceBefore(amountInAccount);
                 movementPenalty.setBalanceAfter(amountAfterMovement);
                 movementPenalty.setMovementType(MovementType.PENALTY_FEE);
                 movementPenalty.setOrderDate(LocalDate.now());
                 movementPenalty.setTimeExecution(LocalDateTime.now());
                 movementPenalty.setModificationDate(LocalDate.of(1, 1, 1));
-                movementPenalty.setAccount(optionalAccount.get());
+                movementPenalty.setAccount(checking);
                 movementRepository.save(movementPenalty);
 
-                optionalAccount.get().setBalance(new Money(amountAfterMovement));
-                accountRepository.save(optionalAccount.get());
+                checking.setBalance(new Money(amountAfterMovement));
+                accountRepository.save(checking);
             } else {
                 movement = new Movement();
                 movement.setTransferAmount(transferMoneyDTO.getAmount().negate());
-                movement.setBalanceBefore(optionalAccount.get().getBalance().getAmount());
-                movement.setBalanceAfter(optionalAccount.get().getBalance().getAmount().subtract(transferMoneyDTO.getAmount()));
+                movement.setBalanceBefore(checking.getBalance().getAmount());
+                movement.setBalanceAfter(checking.getBalance().getAmount().subtract(transferMoneyDTO.getAmount()));
                 movement.setMovementType(MovementType.DECREASED);
                 movement.setOrderDate(LocalDate.now());
                 movement.setTimeExecution(LocalDateTime.now());
                 movement.setModificationDate(LocalDate.of(1, 1, 1));
-                movement.setAccount(optionalAccount.get());
+                movement.setAccount(checking);
                 movementRepository.save(movement);
 
-                optionalAccount.get().setBalance(new Money(optionalAccount.get().getBalance().getAmount().subtract(transferMoneyDTO.getAmount())));
-                accountRepository.save(optionalAccount.get());
+                checking.setBalance(new Money(checking.getBalance().getAmount().subtract(transferMoneyDTO.getAmount())));
+                accountRepository.save(checking);
+            }
+
+            if (fraudDetection.isFraudDetected(checking.getId())){
+                movement = new Movement();
+                movement.setTransferAmount(BigDecimal.ZERO);
+                movement.setBalanceBefore(BigDecimal.ZERO);
+                movement.setBalanceAfter(BigDecimal.ZERO);
+                movement.setMovementType(MovementType.FROZEN);
+                movement.setOrderDate(LocalDate.now());
+                movement.setTimeExecution(LocalDateTime.now());
+                movement.setModificationDate(LocalDate.of(1, 1, 1));
+                movement.setAccount(checking);
+                movementRepository.save(movement);
+
+                checking.setStatus(AccountStatus.FROZEN);
+                accountRepository.save(checking);
             }
         }
 
         if (optionalAccount.get().getClass().equals(Student.class)) {
+            Student student = (Student) optionalAccount.get();
+            if (student.getStatus().equals(AccountStatus.FROZEN)) {
+                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Account is frozen");
+            }
+
             movement = new Movement();
             movement.setTransferAmount(transferMoneyDTO.getAmount().negate());
-            movement.setBalanceBefore(optionalAccount.get().getBalance().getAmount());
-            movement.setBalanceAfter(optionalAccount.get().getBalance().getAmount().subtract(transferMoneyDTO.getAmount()));
+            movement.setBalanceBefore(student.getBalance().getAmount());
+            movement.setBalanceAfter(student.getBalance().getAmount().subtract(transferMoneyDTO.getAmount()));
             movement.setMovementType(MovementType.DECREASED);
             movement.setOrderDate(LocalDate.now());
             movement.setTimeExecution(LocalDateTime.now());
             movement.setModificationDate(LocalDate.of(1, 1, 1));
-            movement.setAccount(optionalAccount.get());
+            movement.setAccount(student);
             movementRepository.save(movement);
 
-            optionalAccount.get().setBalance(new Money(optionalAccount.get().getBalance().getAmount().subtract(transferMoneyDTO.getAmount())));
-            accountRepository.save(optionalAccount.get());
+            student.setBalance(new Money(student.getBalance().getAmount().subtract(transferMoneyDTO.getAmount())));
+            accountRepository.save(student);
+
+            if (fraudDetection.isFraudDetected(student.getId())){
+                movement = new Movement();
+                movement.setTransferAmount(BigDecimal.ZERO);
+                movement.setBalanceBefore(BigDecimal.ZERO);
+                movement.setBalanceAfter(BigDecimal.ZERO);
+                movement.setMovementType(MovementType.FROZEN);
+                movement.setOrderDate(LocalDate.now());
+                movement.setTimeExecution(LocalDateTime.now());
+                movement.setModificationDate(LocalDate.of(1, 1, 1));
+                movement.setAccount(student);
+                movementRepository.save(movement);
+
+                student.setStatus(AccountStatus.FROZEN);
+                accountRepository.save(student);
+            }
         }
 
         if (optionalAccount.get().getClass().equals(CreditCard.class)) {
