@@ -115,6 +115,8 @@ You must include robust error handling.
 You must use the Money class for all currency and BigDecimal for any other decimal or large number math.
 
 
+
+
 **IMPORTANT :**
 If you have any questions about the way we developed the project, feel free to ask!
 
@@ -162,7 +164,7 @@ created automatically for testing purposes: *admin*. The password will be *12345
 ## :exclamation:Project Pipeline
 
 ### Use Case Diagram
-![image](src/main/resources/midtermprojectBankingSystemUseCase.png)
+![image](https://github.com/SergioMateosSanz/midtermproject/blob/develop/src/main/resources/static/midtermprojectBankingSystemUseCase.png)
 
 
 ***If for some reason the links to the images are broken, you can access them in 
